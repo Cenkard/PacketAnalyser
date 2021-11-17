@@ -5,7 +5,7 @@ def ConvHexDec(nombre):
 	l= len(nombre)
 	res = 0
 	for i in range(0, l):
-		n = ord(nombre[i])
+		n = ord(nombre[i].capitalize())
 		if (n>=48 and n<=57):
 			n = n-48
 		elif (n>=65 and n<=70): 
@@ -20,7 +20,7 @@ def ConvBinDec(nombre):
 	l = len(nombre)
 	res =0
 	for i in range(0, l):
-		n = ord(nombre[i])-48;
+		n = ord(nombre[i].capitalize())-48;
 		if (n!=0 and n!=1):
 			return "Erreur"
 		else:
@@ -33,13 +33,20 @@ def ConvHexBin(nombre):
 	l = len(nombre)
 	res = ''
 	for i in range(0, l):
-		n = nombre[i]
+		n = nombre[i].capitalize()
 		if (not(ord(n)>=48 and ord(n)<=57) and not(ord(n)>=65 and ord(n)<=70)):
 			return 'Erreur'
 		res = res + d[n]
-	return res
+
+	i=0#eleminer les 0 du debut
+	if (res!=''):
+		while (res[i]=='0'):
+			i=i+1;
+	return res[i:]
 
 
-
+print(ConvHexDec('123afb'))
+print(ConvHexBin('123afb'))
+print(ConvBinDec(ConvHexBin('123afb')))
 
 
