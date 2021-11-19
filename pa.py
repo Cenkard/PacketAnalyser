@@ -50,27 +50,4 @@ print(ConvHexBin('123afb'))
 print(ConvBinDec(ConvHexBin('123afb')))
 
 
-inf= sys.maxint
-S=7
-k=[1,2,4,6,9]
-def AlgoOptimise(S, V):
-	k = len(V)
-	M = [[0 for x in range(k+1)] for y in range(S+1)]
-
-	for s in range(1, S+1):
-		M[s][0] = inf
-
-	for i in range(1, k+1):
-		for s in range(1, S+1):
-			terme2 = inf
-			if (s-V[i-1]>=0):
-				terme2 = M[s-V[i-1]][i]+1
-			M[s][i] = min(M[s][i-1], terme2)
-	return M
-
-
-M = AlgoOptimise(S, k)
-for el in M:
-	print el
-
 
