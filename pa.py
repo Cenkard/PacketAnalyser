@@ -115,7 +115,7 @@ def DerLigne(DerLigne): #renvoie DerLigne sans texte
 			return DL
 	return DL
 
-def FauxFormatOffset(ligne, TailleOffset):
+def FauxFormatOffset(ligne, TailleOffset): #renvoit si le format d'un offset et faux, sinon renvoit l'offset valide et sa version decimale
 	offset = ""
 	i = 0
 	while (ligne[i]!=" " and ligne[i]!="\n"):
@@ -261,26 +261,39 @@ def TextCleanerTrame(NomFichier): #Enleve tout texte des trames et renovoie list
 
 	return Fichier, TramesValides
 
+def EnleverOffset(Fichier):
+	l = len(Fichier)
+	for i in range(l):
+		ll = len(Fichier[i])
+		TailleOffset = 0
+		k=0
 
-
+		while (Fichier[i][0][k]!=" "):
+			TailleOffset = TailleOffset+1
+			k=k+1
+		for j in range(ll):
+			Fichier[i][j] = Fichier[i][j][TailleOffset+1:]
+	return Fichier
 
 """
 print(ConvHexDec('123afb'))
 print(ConvHexBin('123afb'))
 print(ConvBinDec(ConvHexBin('123afb')))
-"""
+
 FichierTemp = []
 with open ("trame.txt", "r") as f:
 		FichierTemp = f.readlines()
-"""
 Offset0, i = FormatIndiceOffset0(FichierTemp, 0)
 print(Offset0, i)
 TailleOffset = len(Offset0)
 print(VerifierOffset(FichierTemp, i, TailleOffset))
 """
+
 Fichier, tab = TextCleanerTrame("trame.txt")
 AfficherDim2(Fichier)
 print(tab)
+
+AfficherDim2(EnleverOffset(Fichier))
 
 
 
