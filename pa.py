@@ -69,8 +69,8 @@ def FormatIndiceOffset0(FichierTemp, i):#prend en rentrer Fichier et retourne of
 	while (i<l):
 		ligne = FichierTemp[i]
 		try:
-			if (ligne[0]=="0" and ligne[1]=="0"):
-				j=2
+			if (ligne[0:3]=="000"):
+				j=3
 				while(ligne[j]=="0"):
 					j=j+1
 				if (ligne[j]==" "):
@@ -79,7 +79,7 @@ def FormatIndiceOffset0(FichierTemp, i):#prend en rentrer Fichier et retourne of
 			else:
 				i=i+1
 		except IndexError as e:
-			print(e+" FormatIndiceOffset")
+			print(str(e)+" FormatIndiceOffset")
 			i=i+1
 	return -1, -1
 
@@ -238,14 +238,13 @@ def TextCleanerTrame(NomFichier): #Enleve tout texte des trames et renovoie list
 		res = ""
 		verif, i, res = VerifierOffset(FichierTemp, i, TailleOffset) #Verif = si ligne valide (correspond a offset), i= ligne de prochain offset valide, res = ligne validee sans texte ou ligne invalide
 		tempi=0
-		TrameValide = 1
+		TrameValide = []
 
 		#ajout trame
 		while (verif!=0):
 			trame.append(res)
 			if (verif == -1):
-				TrameValide = 0
-				print("Erreur verifier ligne : "+str(tempi+1))
+				TrameValide.append("Erreur dans trame, verifier ligne : "+str(tempi+1))
 
 			tempi= i
 

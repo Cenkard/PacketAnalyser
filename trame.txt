@@ -12,6 +12,7 @@
 0030   00 00 00 00 00 00 03 73 69 70 09 63 79 62 65 72 asdjflsd
 0040   63 72 74 79 02 64 6b 00 00 01 00 01     asdjflsdasdjflsd
 
+00
 00   00 e0 ed 01 6e bd 00 30 54 00 34 56 08 00 45 10 asdjflsd
 10   00 63 79 0f 40 00 39 06 70 e4 93 ea 01 fd c0 a8 asdjflsd
 20   01 02 00 15 0a ac e5 1f 96 c1 af 9d c3 2c 50 18 asdjflsd
