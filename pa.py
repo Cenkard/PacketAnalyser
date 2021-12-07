@@ -274,26 +274,218 @@ def EnleverOffset(Fichier):
 			Fichier[i][j] = Fichier[i][j][TailleOffset+1:]
 	return Fichier
 
+def creerTabTrame(fichier,tab): #recupere les trames valides sous forme de string contenant tous les hexadecimaux a la suite
+	i=0
+	j=0
+	trameValide = []
+	tabTrame = []
+	while(i<len(tab)):
+		if(tab[i]==[]):
+			trameValide.append(fichier[i])
+		i+=1
+
+	for trame in trameValide:
+		tabTrame.append("")
+		for ligne in trame:
+			i=0
+			ligneCopy = ""
+			while(ligne[i]!=' '):
+				i=i+1
+			i=i+1
+			ligneCopy = ''.join(str(item) for item in ligne[i:])
+			tabTrame[j] = tabTrame[j]+ligneCopy
+		j=j+1
+	return tabTrame
+
+
+
+def ListOpEnText(L):  #Fonction intermediaire pour le mode texte en optionIP
+	res2= L[0]
+	l = len(L)
+	for i in range(1, l):
+		res2 = res2+"   "+L[i][0]
+		L2 = L[i][1].split("\n")
+		L2 = L2[:-1] #ignorer dernier element vide
+		for el in L2:
+			res2=res2+"      "+el+"\n"
+	return res2
+
+def LecteurIpAdresse(trame, i): #Fontion intermediaire pour lire IP (ne pas oublie de faire i=i+8 au retour)
+	fin = i+8
+	addrIP = ""
+	while (i<fin):
+		nb = ConvHexDec(trame[i:i+2])
+		addrIP = addrIP + str(nb) + "."
+		i=i+2
+	return addrIP[:-1]	
+
+def RecordRoute(trame, j):
+	lrr = ConvHexDec(trame[j+2: j+4]) #longueur en octets
+	Pointer = ConvHexDec(trame[j+4:j+6])
+	L= [] #liste de textes a inserer L[0] = ligne de nom, L[1] = type, L[2] = longueur, L[3] = pointeur
+	L.append("IP Option - Record Route ({} bytes)\n".format(lrr))
+	contenu = "Type: 7\nLength: {}\nPointer: {}\n".format(lrr, Pointer)
+	finOp = j+lrr*2-1 #indice du dernier chiffre hexadecimal de cette option
+	i = j+6
+	cpt= 0
+	Pointer = (Pointer-4)/4
+	while (i<=finOp):
+		addrIP = LecteurIpAdresse(trame, i)
+		if (addrIP == "0.0.0.0"):
+			contenu = contenu + "Empty Route: "+addrIP+"\n"
+		else:
+			contenu = contenu + "Recorded Route: "+addrIP+"\n"
+		i = i+8
+
+		#gestion pointer
+		if (Pointer<(lrr-3)/4 and cpt==Pointer):
+			contenu = contenu[:-1]+"  <- (next)\n"
+		cpt=cpt+1
+	L.append(contenu)
+	return i, L
+
+
+def FlagTextTimeStamp(Flag): #fonction intermediaire pour les flag de TimeStamp
+	if (Flag == "0000"):
+		return "Time stamps only (0x0)"
+	elif (Flag == "0001"):
+		return "Time stamp and address (0x1)"
+	elif (Flag== "0011"):
+		return "Time stamp and address prespecified"
+
+def TimeStamp(trame, j):
+	lts = ConvHexDec(trame[j+2: j+4]) #longueur en octets
+	finOp = j+lts*2-1 #indice du dernier chiffre hexadecimal de cette option
+	L= [] #liste de textes a inserer L[0] = ligne de nom, L[1] = type, L[2] = longueur, L[3] = pointeur
+	L.append("IP Option - Time Stamp ({} bytes)\n".format(lts))
+	Pointer = ConvHexDec(trame[j+4:j+6])
+	OverflowBin = ConvHexBin(trame[j+6])
+	OverflowDec = ConvHexDec(trame[j+6])
+	Flag = ConvHexBin(trame[j+7])
+
+	contenu = "Type: 68\nLength: {}\nPointer: {}\n{} .... = Overflow: {}\n.... {} = Flag: {}\n".format(lts, Pointer, OverflowBin, OverflowDec, Flag, FlagTextTimeStamp(Flag))
+
+	i = j+8
+	cpt = 0
+
+	if (Flag=="0000"):
+		while (i<=finOp):
+			nb = str(ConvHexDec(trame[i:i+8]))
+			contenu = contenu +"Time Stamp: "+ nb+"\n"
+			i = i +8
+
+	elif (Flag == "0001" or Flag=="0011"):
+		while (i<=finOp):
+			addrIP = LecteurIpAdresse(trame, i)
+			i = i + 8
+			nb = str(ConvHexDec(trame[i:i+8]))
+			i=i+8
+
+			if (addrIP=="0.0.0.0"):
+				contenu=contenu+"Address: -\nTime Stamp: {}\n".format(nb)
+			else:
+				contenu=contenu+"Address: {}\nTime Stamp: {}\n".format(addrIP, nb)
+
+	L.append(contenu)
+	return i, L
+
+def  LooseSourceRoute(trame, j):
+	lsr = ConvHexDec(trame[j+2: j+4]) #longueur en octets
+	Pointer = ConvHexDec(trame[j+4:j+6])
+	L= [] #liste de textes a inserer L[0] = ligne de nom, L[1] = type, L[2] = longueur, L[3] = pointeur
+	L.append("IP Option - Loose Source Route ({} bytes)\n".format(lsr))
+	contenu = "Type: 131\nLength: {}\nPointer: {}\n".format(lsr, Pointer)
+	finOp = j+lsr*2-1 #indice du dernier chiffre hexadecimal de cette option
+	i = j+6
+	cpt= 0
+	Pointer = (Pointer-4)/4
+	while (i<=finOp):
+		addrIP = LecteurIpAdresse(trame, i)
+		if (i!=finOp-7):
+			contenu = contenu + "Source Route: "+addrIP+"\n"
+		else:
+			contenu = contenu + "Destination: "+addrIP+"\n"
+		i = i+8
+
+		#gestion pointer
+		if (Pointer<(lsr-3)/4-1 and cpt==Pointer):
+			contenu = contenu[:-1]+"  <- (next)\n"
+		cpt=cpt+1
+	L.append(contenu)
+	return i, L
+	
+def StrictSourceRoute(trame, j):
+	lss = ConvHexDec(trame[j+2: j+4]) #longueur en octets
+	Pointer = ConvHexDec(trame[j+4:j+6])
+	L= [] #liste de textes a inserer L[0] = ligne de nom, L[1] = type, L[2] = longueur, L[3] = pointeur
+	L.append("IP Option - Strict Source Route ({} bytes)\n".format(lss))
+	contenu = "Type: 137\nLength: {}\nPointer: {}\n".format(lss, Pointer)
+	finOp = j+lss*2-1 #indice du dernier chiffre hexadecimal de cette option
+	i = j+6
+	cpt= 0
+	Pointer = (Pointer-4)/4
+	while (i<=finOp):
+		addrIP = LecteurIpAdresse(trame, i)
+		if (i!=finOp-7):
+			contenu = contenu + "Source Route: "+addrIP+"\n"
+		else:
+			contenu = contenu + "Destination: "+addrIP+"\n"
+		i = i+8
+
+		#gestion pointer
+		if (Pointer<(lss-3)/4-1 and cpt==Pointer):
+			contenu = contenu[:-1]+"  <- (next)\n"
+		cpt=cpt+1
+	L.append(contenu)
+	return i, L
+
+def optionIP(trameTot,mod): #prend en entree une trame retourne ses options decodes #0,1,7,68, 131,137, mod = 0 retourne liste, sinon retourne texte
+	cpt = 0
+	trame = trameTot[28:] #on s'occupe que de la partie IP
+	LongOp = ConvHexDec(trame[1])*4 - 20
+	finOps = 40 + LongOp*2 -1 #indice du dernier chiffre hexadecimal d'option
+	res = []
+	res.append("Options: ({} bytes)\n".format(LongOp)) # L[0] = ligne de titre options, a partir de L[1] on commences les differentes options, avec e.g. L[1][0] le titre et L[1][1] le contenu
+	if (LongOp==0):
+		return None
+	else:
+		i = 40
+		while (i<=finOps):
+			typ = ConvHexDec(trame[i:i+2])
+			op = ""
+			if (typ==0):
+				i, op= finOps+1, ["IP Option - End of Option List (EOL)\n", "Type: 0\n"]
+			elif (typ==1):
+				i, op = i+2, ["IP Option - No-Operation (NOP)\n", "Type: 1\n"]
+			elif (typ==7):
+				i, op = RecordRoute(trame, i)
+			elif (typ==68):
+				i, op = TimeStamp(trame, i)
+			elif (typ==131):
+				i, op = LooseSourceRoute(trame, i)
+			elif (typ==137):
+				i, op = StrictSourceRoute(trame, i)
+			else:
+				i, op = i+2, ["Erreur, option non reconnue", "Uknown"]
+				cpt = cpt+1
+
+
+			if (op!= ["Erreur, option non reconnue", "Uknown"] or cpt==1):#gestion de plusieurs octets d option inconnue
+				if (op!= "Erreur, option non reconnue"):
+					cpt = 0
+				res.append(op)
+
+	if (mod==0):
+		return res, LongOp*2
+
+	return ListOpEnText(res), LongOp*2
+
+
 """
-print(ConvHexDec('123afb'))
-print(ConvHexBin('123afb'))
-print(ConvBinDec(ConvHexBin('123afb')))
-
-FichierTemp = []
-with open ("trame.txt", "r") as f:
-		FichierTemp = f.readlines()
-Offset0, i = FormatIndiceOffset0(FichierTemp, 0)
-print(Offset0, i)
-TailleOffset = len(Offset0)
-print(VerifierOffset(FichierTemp, i, TailleOffset))
+fichier, tab = TextCleanerTrame("SSR.txt")
+fichier = creerTabTrame(fichier, tab)
+AfficherDim2(optionIP(fichier[0], 1))
 """
-
-Fichier, tab = TextCleanerTrame("trame.txt")
-AfficherDim2(Fichier)
-print(tab)
-
-AfficherDim2(EnleverOffset(Fichier))
-
 
 
 
