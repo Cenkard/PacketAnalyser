@@ -1,0 +1,180 @@
+#########	TRAME 1 #########
+Destination MAC : ff:ff:ff:ff:ff:ff (broadcast)
+Source MAC : 00:0b:82:01:fc:42
+Type : IPv4 (0x0800)
+Internet Protocol Version 4 ():
+	Version : 4 (0x0100)
+	IHL : 5 (0x0101)
+	Total Length : 300	(0x012c)
+	Identification : 0xa836 (43062)
+	TOS : 0	(0x00)
+	Flags : 0x0000
+		0... .... .... .... : Reserved bite
+		.0.. .... .... .... : Don't fragment
+		..0. .... .... .... : More fragment
+		...0 0000 0000 0000 = Fragment offset: 0
+	Time to live : 250	(0xfa)
+	Protocol : UDP (17)	(Ox11)
+	Checksum : 0x178b [validation disabled]
+	Destination IP : 255.255.255.255
+	Source IP : 0.0.0.0
+User Datagram Protocol :
+	Source Port  : 68 (0x0044)
+	Destination Port : 67 (0x0043)
+	Length : 280	(0x0118)
+	Checksum : 0x591f [validation disabled]
+Dynamic Host Configuration Protocol
+	Message type: DHCP Discover (1)
+	Hardware type: Ethernet (10Mb) (0x01)
+	Hardware address length: 6
+	Hops: 0
+	Transaction ID: 0x00003d1d
+	Seconds elapsed: 0
+	Bootp flags: 0x0000 (unicast)
+	Client IP address: 0.0.0.0
+	Your (client) IP address: 0.0.0.0
+	Next Server IP address: 0.0.0.0
+	Relay agent IP address: 0.0.0.0
+	Client MAC address: 00:0b:82:01:fc:42
+	Client hardware address padding: 00000000000000000000
+	Server host name not given
+	Boot file name not given
+	Magic Cookie: DHCP
+	Options a venir
+
+
+#########	TRAME 2 #########
+Destination MAC : 00:0b:82:01:fc:42
+Source MAC : 00:08:74:ad:f1:9b
+Type : IPv4 (0x0800)
+Internet Protocol Version 4 ():
+	Version : 4 (0x0100)
+	IHL : 5 (0x0101)
+	Total Length : 328	(0x0148)
+	Identification : 0x0445 (1093)
+	TOS : 0	(0x00)
+	Flags : 0x0000
+		0... .... .... .... : Reserved bite
+		.0.. .... .... .... : Don't fragment
+		..0. .... .... .... : More fragment
+		...0 0000 0000 0000 = Fragment offset: 0
+	Time to live : 128	(0x80)
+	Protocol : UDP (17)	(Ox11)
+	Checksum : 0x0000 [validation disabled]
+	Destination IP : 192.168.0.10
+	Source IP : 192.168.0.1
+User Datagram Protocol :
+	Source Port  : 67 (0x0043)
+	Destination Port : 68 (0x0044)
+	Length : 308	(0x0134)
+	Checksum : 0x2233 [validation disabled]
+Dynamic Host Configuration Protocol
+	Message type: DHCP Offer (2)
+	Hardware type: Ethernet (10Mb) (0x01)
+	Hardware address length: 6
+	Hops: 0
+	Transaction ID: 0x00003d1d
+	Seconds elapsed: 0
+	Bootp flags: 0x0000 (unicast)
+	Client IP address: 0.0.0.0
+	Your (client) IP address: 192.168.0.10
+	Next Server IP address: 192.168.0.1
+	Relay agent IP address: 0.0.0.0
+	Client MAC address: 00:0b:82:01:fc:42
+	Client hardware address padding: 00000000000000000000
+	Server host name not given
+	Boot file name not given
+	Magic Cookie: DHCP
+	Options a venir
+
+
+#########	TRAME 3 #########
+Destination MAC : ff:ff:ff:ff:ff:ff (broadcast)
+Source MAC : 00:0b:82:01:fc:42
+Type : IPv4 (0x0800)
+Internet Protocol Version 4 ():
+	Version : 4 (0x0100)
+	IHL : 5 (0x0101)
+	Total Length : 300	(0x012c)
+	Identification : 0xa837 (43063)
+	TOS : 0	(0x00)
+	Flags : 0x0000
+		0... .... .... .... : Reserved bite
+		.0.. .... .... .... : Don't fragment
+		..0. .... .... .... : More fragment
+		...0 0000 0000 0000 = Fragment offset: 0
+	Time to live : 250	(0xfa)
+	Protocol : UDP (17)	(Ox11)
+	Checksum : 0x178a [validation disabled]
+	Destination IP : 255.255.255.255
+	Source IP : 0.0.0.0
+User Datagram Protocol :
+	Source Port  : 68 (0x0044)
+	Destination Port : 67 (0x0043)
+	Length : 280	(0x0118)
+	Checksum : 0x9fbd [validation disabled]
+Dynamic Host Configuration Protocol
+	Message type: DHCP Discover (1)
+	Hardware type: Ethernet (10Mb) (0x01)
+	Hardware address length: 6
+	Hops: 0
+	Transaction ID: 0x00003d1e
+	Seconds elapsed: 0
+	Bootp flags: 0x0000 (unicast)
+	Client IP address: 0.0.0.0
+	Your (client) IP address: 0.0.0.0
+	Next Server IP address: 0.0.0.0
+	Relay agent IP address: 0.0.0.0
+	Client MAC address: 00:0b:82:01:fc:42
+	Client hardware address padding: 00000000000000000000
+	Server host name not given
+	Boot file name not given
+	Magic Cookie: DHCP
+	Options a venir
+
+
+#########	TRAME 4 #########
+Destination MAC : 00:0b:82:01:fc:42
+Source MAC : 00:08:74:ad:f1:9b
+Type : IPv4 (0x0800)
+Internet Protocol Version 4 ():
+	Version : 4 (0x0100)
+	IHL : 5 (0x0101)
+	Total Length : 328	(0x0148)
+	Identification : 0x0446 (1094)
+	TOS : 0	(0x00)
+	Flags : 0x0000
+		0... .... .... .... : Reserved bite
+		.0.. .... .... .... : Don't fragment
+		..0. .... .... .... : More fragment
+		...0 0000 0000 0000 = Fragment offset: 0
+	Time to live : 128	(0x80)
+	Protocol : UDP (17)	(Ox11)
+	Checksum : 0x0000 [validation disabled]
+	Destination IP : 192.168.0.10
+	Source IP : 192.168.0.1
+User Datagram Protocol :
+	Source Port  : 67 (0x0043)
+	Destination Port : 68 (0x0044)
+	Length : 308	(0x0134)
+	Checksum : 0xdfdb [validation disabled]
+Dynamic Host Configuration Protocol
+	Message type: DHCP Offer (2)
+	Hardware type: Ethernet (10Mb) (0x01)
+	Hardware address length: 6
+	Hops: 0
+	Transaction ID: 0x00003d1e
+	Seconds elapsed: 0
+	Bootp flags: 0x0000 (unicast)
+	Client IP address: 0.0.0.0
+	Your (client) IP address: 192.168.0.10
+	Next Server IP address: 0.0.0.0
+	Relay agent IP address: 0.0.0.0
+	Client MAC address: 00:0b:82:01:fc:42
+	Client hardware address padding: 00000000000000000000
+	Server host name not given
+	Boot file name not given
+	Magic Cookie: DHCP
+	Options a venir
+
+

@@ -43,9 +43,9 @@ def ConvHexBin(nombre):
 
 	i=0#eleminer les 0 du debut
 	if (res!=''):
-		while (res[i]=='0'):
+		while (res[i]=='0' and i<l):
 			i=i+1;
-	return res[i:]
+	return res
 
 def ConvDecHex(nombre):
 	dic = {0:"0", 1:"1",2:"2",3:"3",4:"4",5:"5",6:"6",7:"7",8:"8",9:"9",10:"A",11:"B",12:"C",13:"D",14:"E",15:"F"}
@@ -86,6 +86,7 @@ def FormatIndiceOffset0(FichierTemp, i):#prend en rentrer Fichier et retourne of
 
 
 def SupprimerEspace(element):
+	print(element)
 	res = ""
 	for el in element:
 		if (el!=" "):
@@ -106,7 +107,7 @@ def DerLigne(DerLigne): #renvoie DerLigne sans texte
 		i = i+1
 	DL = DL + " "
 
-	#prendre les octets non textes
+	#prendre les octets hexadecimaux qui peuvent etre texte ou pas
 	for j in range(i+1, l):
 		n = ord(DerLigne[j].capitalize())
 		if ((n>=48 and n<=57) or (n>=65 and n<=70)):
@@ -236,15 +237,15 @@ def TextCleanerTrame(NomFichier): #Enleve tout texte des trames et renovoie list
 		#init trame
 		trame = []
 		res = ""
+		tempi=i
 		verif, i, res = VerifierOffset(FichierTemp, i, TailleOffset) #Verif = si ligne valide (correspond a offset), i= ligne de prochain offset valide, res = ligne validee sans texte ou ligne invalide
-		tempi=0
 		TrameValide = []
 
 		#ajout trame
 		while (verif!=0):
 			trame.append(res)
 			if (verif == -1):
-				TrameValide.append("Erreur dans trame, verifier ligne : "+str(tempi+1))
+				TrameValide.append("Erreur dans trame ({}), verifier ligne : ".format(len(Fichier)+1)+str(tempi+1))
 
 			tempi= i
 
@@ -252,7 +253,7 @@ def TextCleanerTrame(NomFichier): #Enleve tout texte des trames et renovoie list
 
 		#Gestion de la derniere ligne de la trame
 		res = DerLigne(res)
-		trame.append(res)
+		trame.append(res+" {}".format(tempi+1))
 		Fichier.append(trame)
 
 		#indiquer si trame est valide
@@ -274,11 +275,13 @@ def EnleverOffset(Fichier):
 			Fichier[i][j] = Fichier[i][j][TailleOffset+1:]
 	return Fichier
 
+
 def creerTabTrame(fichier,tab): #recupere les trames valides sous forme de string contenant tous les hexadecimaux a la suite
 	i=0
 	j=0
 	trameValide = []
 	tabTrame = []
+	tab2 = tab
 	while(i<len(tab)):
 		if(tab[i]==[]):
 			trameValide.append(fichier[i])
@@ -295,8 +298,26 @@ def creerTabTrame(fichier,tab): #recupere les trames valides sous forme de strin
 			ligneCopy = ''.join(str(item) for item in ligne[i:])
 			tabTrame[j] = tabTrame[j]+ligneCopy
 		j=j+1
-	return tabTrame
 
+	#Gestion de la derniere ligne de chaque trame
+	l = len(tabTrame)
+	for i in range(l):
+		longueurTrameChiffre = 28+ConvHexDec(tabTrame[i][32:36])*2
+		vraiLongueurTrameChiffre = len(tabTrame[i][:-2])
+		if (vraiLongueurTrameChiffre>=longueurTrameChiffre):
+			tabTrame[i] = tabTrame[i][:longueurTrameChiffre]
+		else:
+			trame = tabTrame[i]
+			k = len(trame)-1
+			while (trame[k]!=" "):
+				k=k-1
+			erreur = "Erreur trame ({}), ligne ({})".format(i, tabTrame[i][k+1:])
+			tab2[i].append(erreur)
+			tabTrame.pop(i)
+			#print(erreur)
+			
+	return tabTrame
+ 
 
 
 def ListOpEnText(L):  #Fonction intermediaire pour le mode texte en optionIP
@@ -447,7 +468,7 @@ def optionIP(trameTot,mod): #prend en entree une trame retourne ses options deco
 	res = []
 	res.append("\tOptions: ({} bytes)\n".format(LongOp)) # L[0] = ligne de titre options, a partir de L[1] on commences les differentes options, avec e.g. L[1][0] le titre et L[1][1] le contenu
 	if (LongOp==0):
-		return None
+		return None, 0
 	else:
 		i = 40
 		while (i<=finOps):
@@ -505,9 +526,9 @@ def hardwareDHCP(code):
 	nbDec = ConvHexDec(code)
 	dico = {0: 'NET/ROM pseudo (reserved)', 1: 'Ethernet (10Mb)', 2: 'Experimental Ethernet (3Mb)', 3: 'Amateur Radio AX.25', 4: 'Proteon ProNET Token Ring', 5: 'Chaos', 6: 'IEEE 802 Networks', 7: 'ARCNET', 8: 'Hyperchannel', 9: 'Lanstar', 10: 'Autonet Short Address', 11: 'LocalTalk', 12: 'LocalNet (IBM PCNet or SYTEK LocalNET)', 13: 'Ultra link', 14: 'SMDS', 15: 'Frame Relay', 16: 'Asynchronous Transmission Mode (ATM)', 17: 'HDLC', 18: 'Fibre Channel', 19: 'Asynchronous Transmission Mode (ATM)', 20: 'Serial Line', 21: 'Asynchronous Transmission Mode (ATM)', 22: 'MIL-STD-188-220', 23: 'Metricom', 24: 'IEEE 1394.1995', 25: 'MAPOS', 26: 'Twinaxial', 27: 'EUI-64', 28: 'HIPARP', 29: 'IP and ARP over ISO 7816-3', 30: 'ARPSec', 31: 'IPsec tunnel', 32: 'InfiniBand (TM)', 33: 'TIA-102 Project 25 Common Air Interface (CAI)', 34: 'Wiegand Interface', 35: 'Pure IP', 36: 'HW_EXP1', 37: 'HFI', 38: 'Unassigned', 256: 'HW_EXP2', 257: 'AEthernet', 258: 'Unassigned', 42: 'Reserved'}
 	if ((nbDec>37 and nbDec<256) or (nbDec>257 and nbDec<65535)):
-		return dico[38]+" (0x{})\n".format(code)
+		return dico[38]+" (0x{})".format(code)
 	elif (nbDec in dico):
-		return dico[nbDec]+" (0x{})\n".format(code)
+		return dico[nbDec]+" (0x{})".format(code)
 	return "Unknown (0x{})".format(code)
 
 
@@ -522,14 +543,14 @@ def LecteurMAC(clMAC, i):
 	fin = i+12
 	addrMAC = ""
 	while (i<fin):
-		addrMAC = addrMAC + clMACp[i:i+2] + ":"
+		addrMAC = addrMAC + clMAC[i:i+2] + ":"
 		i=i+2
 	return addrMAC[:-1]	
 
 def ClientMAC(mac):
 	clientMAC = mac[:12]
 	if (clientMAC!="000000000000"):
-		return "\tClient MAC address: {}\n\tClient hardware address padding: {}\n".format(LecteurMAC(clientMAC,0), mac[12:])
+		return "\tClient MAC address: {}\n\tClient hardware address padding: {}".format(LecteurMAC(clientMAC,0), mac[12:])
 	else:
 		return "\tClient address not given"
 
@@ -543,7 +564,7 @@ def ServerHostName(octets): #je vais transforme en ascii si necessaire
 		while(i!=126 and octets[i]!=0):
 			nouvOctets= nouvOctets+el
 			i=i+1
-		return "\tServer host name: "+nouvOctets+"\n" #il suffit de transformet ca en ascii si necessaire
+		return "\tServer host name: "+nouvOctets #il suffit de transformet ca en ascii si necessaire
 
 def BootFileName(octets): #je vais transforme en ascii si necessaire
 	if (octets[0:20]=="00000000000000000000"):
@@ -555,7 +576,7 @@ def BootFileName(octets): #je vais transforme en ascii si necessaire
 		while(i!=126 and octets[i]!=0):
 			nouvOctets= nouvOctets+el
 			i=i+1
-		return "\tBoot file name: "+nouvOctets+"\n" #il suffit de transformet ca en ascii si necessaire
+		return "\tBoot file name: "+nouvOctets #il suffit de transformet ca en ascii si necessaire
 
 def MagicCookie(cookie):
 	if (cookie=="63825363"):
@@ -564,13 +585,109 @@ def MagicCookie(cookie):
 		return "Uknown"
 
 def optionDHCP(options):
-	pass
+	return "\tOptions a venir"
+
+def ListOpDHCPEnText(L):  #Fonction intermediaire pour le mode texte en optionIP
+	l = len(L)
+	res2 = ""
+	for i in range(l):
+		op = L[i]
+		res2=res2+"\t"+op[0]+"n"
+
+		L2 = op[1].split("\n")
+		L2 = L2[:-1] #ignorer dernier element vide
+		for el in L2:
+			res2=res2+"\t\t"+el+"\n"
+	return res2
+
+def optionDHCP2(options):
+	cpt = 0
+	LongOp = len(options)
+	finOps = len(options)-1
+	res = []
+	if (options == "0"*LongOp):
+		return "\tPas d'options"
+	elif (options[0:2]=="ff"):
+		return 
+	else:
+		i= 0
+		while (i<=finOps):
+			typ = ConvHexDec(options[i:i+2])
+			op = ""
+			if (typ==1):
+				l = ConvHexDec(options[i+2:i+4])
+				SubMask = LecteurIpAdresse(options, i+4)
+				i, op = i+8, ["\tOption ({}) Subnetmask ({})\n\t"]
+			elif (typ==3):
+				i, op = i+2, ["IP Option - No-Operation (NOP)\n", "Type: 1\n"]
+			elif (typ==6):
+				i, op = RecordRoute(trame, i)
+			elif (typ==51):
+				i, op = TimeStamp(trame, i)
+			elif (typ==2):
+				i, op = LooseSourceRoute(trame, i)
+			elif (typ==4):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==12):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==15):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==42):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==48):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==69):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==81):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==100):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==101):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==119):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==121):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==61):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==12):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==60):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==55):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==53):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==50):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==255):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==59):
+				i, op = StrictSourceRoute(trame, i)
+			elif (typ==54):
+				i, op = StrictSourceRoute(trame, i)
+			else:
+				i, op = i+2, ["Erreur, option non reconnue", "Uknown"]
+				cpt = cpt+1
 
 
+			if (op!= ["Erreur, option non reconnue", "Uknown"] or cpt==1):#gestion de plusieurs octets d option inconnue
+				if (op!= "Erreur, option non reconnue"):
+					cpt = 0
+				res.append(op)
 
-fichier, tab = TextCleanerTrame("SSR.txt")
-fichier = creerTabTrame(fichier, tab)
-AfficherDim2(optionIP(fichier[0], 1))
+	if (mod==0):
+		return res, LongOp*2
+
+	return ListOpDHCPEnText(res), LongOp*2
+
+
+Fichier, tab = TextCleanerTrame("trame.txt")
+listTrame, tab= creerTabTrame(Fichier,tab)
+#print(listTrame)
+#fichier, tab = TextCleanerTrame("test 2.txt")
+#fichier = creerTabTrame(fichier, tab)
+#AfficherDim2(fichier)
 
 
 

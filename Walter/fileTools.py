@@ -9,8 +9,10 @@ def afficherTrameTease(trame):
 	else:
 		print(str(trame.id)+" : "+str(trame.data.destinationIP)+" | "+str(trame.data.sourceIP)+" | "+str(trame.data.data.type))
 
-def afficherTrameDetail(listTrame):
+def afficherTrameDetail(listTrame): #-----------------------------modifie options IP et ajout dhcp
 	#ClearFicherTrame()
+	with open ("sdfasdfdfda", "w") as f2:
+		f2.write("bla")
 	with open("Trame_File", "w") as f:
 		for trame in listTrame:
 			f.write("#########	TRAME "+str(trame.id)+" #########\n")
@@ -42,7 +44,8 @@ def afficherTrameDetail(listTrame):
 				f.write("\tChecksum : 0x"+dataEth.headerChecksum+" [validation disabled]\n")
 				f.write("\tDestination IP : "+str(dataEth.destinationIP)+"\n")
 				f.write("\tSource IP : "+str(dataEth.sourceIP)+"\n")
-				f.write(dataEth.options) #------------------------------
+				if (dataEth.options!=None):
+					f.write(dataEth.options) #------------------------------
 
 				if(dataEth.data.type == "ICMP"):
 					dataIP = trame.data
@@ -119,23 +122,23 @@ def afficherTrameDetail(listTrame):
 
 					elif(dataIP.data.type == "DHCP"):
 						dataUDP = dataIP.data
-						f.write("Dynamic Host Configuration Protocol")
-						f.write("\tMessage type: "+messageDHCP(dataIP.data))
-						f.write("\tHardware type: "+hardwareDHCP(dataIP.data))
-						f.write("\tHardware address length: "+ConvHexDec(dataIP.data.hardAddLength))
-						f.write("\tHops: "+ConvHexDec(dataIP.data.hops))
-						f.write("\tTransaction ID: 0x"+dataIP.data.transID)
-						f.write("\tSeconds elapsed: "+ConvHexDec(dataIP.data.secColl))
-						f.write("\tBootp flags: 0x"+BootpFlags(dataIP.data.bootpFlags)) #retourne texte selon broadcast ou unicast
-						f.write("\tClient IP address: "+LecteurIpAdresse(dataIP.data.clientIP, 0))
-						f.write("\tYour (client) IP address: "+LecteurIpAdresse(dataIP.data.yourIP, 0))
-						f.write("\tNext Server IP address: "+LecteurIpAdresse(dataIP.data.serverIP, 0))
-						f.write("\tRelay agent IP address: "+LecteurIpAdresse(dataIP.data.gatewayIP, 0))
-						f.write(ClientMAC(dataIP.data)) #retourne MAC selon si ca existe ou pas
-						f.write(ServerHostName(dataIP.data))#retourne le nom selon s'il existe ou pas
-						f.write(BootFileName(dataIP.data)) #retourne le nom du bootfile selon s'il est donne ou pas
-						f.write("\tMagic Cookie: "+MagicCookie(dataIP.data.magicCookie))
-						f.write(optionDHCP(dataIP.data.options))
+						f.write("Dynamic Host Configuration Protocol\n")
+						f.write("\tMessage type: "+messageDHCP(dataIP.data.bootRq)+"\n")
+						f.write("\tHardware type: "+hardwareDHCP(dataIP.data.hardType)+"\n")
+						f.write("\tHardware address length: "+str(ConvHexDec(dataIP.data.hardAddLength))+"\n")
+						f.write("\tHops: "+str(ConvHexDec(dataIP.data.hops))+"\n")
+						f.write("\tTransaction ID: 0x"+dataIP.data.transID+"\n")
+						f.write("\tSeconds elapsed: "+str(ConvHexDec(dataIP.data.secColl))+"\n")
+						f.write("\tBootp flags: 0x"+BootpFlags(dataIP.data.bootpFlags)+"\n") #retourne texte selon broadcast ou unicast
+						f.write("\tClient IP address: "+LecteurIpAdresse(dataIP.data.clientIP, 0)+"\n")
+						f.write("\tYour (client) IP address: "+LecteurIpAdresse(dataIP.data.yourIP, 0)+"\n")
+						f.write("\tNext Server IP address: "+LecteurIpAdresse(dataIP.data.serverIP, 0)+"\n")
+						f.write("\tRelay agent IP address: "+LecteurIpAdresse(dataIP.data.gatewayIP, 0)+"\n")
+						f.write(ClientMAC(dataIP.data.clientMAC)+"\n") #retourne MAC selon si ca existe ou pas
+						f.write(ServerHostName(dataIP.data.serverName)+"\n")#retourne le nom selon s'il existe ou pas
+						f.write(BootFileName(dataIP.data.bootFileName)+"\n") #retourne le nom du bootfile selon s'il est donne ou pas
+						f.write("\tMagic Cookie: "+MagicCookie(dataIP.data.magicCookie)+"\n")
+						f.write(optionDHCP(dataIP.data.options)+"\n")
 
 
 						
@@ -145,6 +148,5 @@ def afficherTrameDetail(listTrame):
 
 				f.write("\n\n")
 
-Fichier, tab = TextCleanerTrame("trame.txt")
-listTrame = creerTrame(Fichier,tab)
-afficherTrameDetail(listTrame)
+Fichier, tab = TextCleanerTrame("test.txt")
+afficherTrameDetail(creerTrame(Fichier,tab))

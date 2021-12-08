@@ -134,17 +134,18 @@ def creerDNS(trame):	#cree le paquet dns
 		dataDns.addition = addTab
 	return dataDns
 
-def creerDHCP(dhcpData):	#cree le paquet DHCP --------------------------------------------------------------
-	dataDHCP = DHCP(dhcpData[:2],dhcpData[2:4],dhcpData[4:6],dhcpData[6:8],dhcpData[8:16],dhcpData[16:20],dhcpData[20:24],dhcpData[24:32],dhcpData[32:40],dhcpData[40:48], dhcpData[48, 56], dhcpData[56:88],dhcpData[88:216],dhcpData[216:472], dhcp[472, 488], dhcpData[472:])
+def creerDHCP(dhcpData):	#cree le paquet DHCP -------------------------------------------------------------- modifie
+	dataDHCP = DHCP(dhcpData[:2],dhcpData[2:4],dhcpData[4:6],dhcpData[6:8],dhcpData[8:16],dhcpData[16:20],dhcpData[20:24],dhcpData[24:32],dhcpData[32:40],dhcpData[40:48], dhcpData[48: 56], dhcpData[56:88],dhcpData[88:216],dhcpData[216:472], dhcpData[472: 480], dhcpData[480:])
 	return dataDHCP
 
-def creerTabTrame(fichier,tab): #recupere les trames valides sous forme de string contenant tous les hexadecimaux a la suite
+def creerTabTrame(fichier,tab): #recupere les trames valides sous forme de string contenant tous les hexadecimaux a la suite ---------------------------------- modifie gestion derniere ligne et erreurs
 	i=0
 	j=0
 	trameValide = []
 	tabTrame = []
+	tab2 = tab
 	while(i<len(tab)):
-		if(tab[i]==1):
+		if(tab[i]==[]):
 			trameValide.append(fichier[i])
 		i+=1
 
@@ -159,9 +160,27 @@ def creerTabTrame(fichier,tab): #recupere les trames valides sous forme de strin
 			ligneCopy = ''.join(str(item) for item in ligne[i:])
 			tabTrame[j] = tabTrame[j]+ligneCopy
 		j=j+1
+
+	#Gestion de la derniere ligne de chaque trame
+	l = len(tabTrame)
+	for i in range(l):
+		longueurTrameChiffre = 28+ConvHexDec(tabTrame[i][32:36])*2
+		vraiLongueurTrameChiffre = len(tabTrame[i][:-2])
+		if (vraiLongueurTrameChiffre>=longueurTrameChiffre):
+			tabTrame[i] = tabTrame[i][:longueurTrameChiffre]
+		else:
+			trame = tabTrame[i]
+			k = len(trame)-1
+			while (trame[k]!=" "):
+				k=k-1
+			erreur = "Erreur trame ({}), ligne ({})".format(i, tabTrame[i][k+1:])
+			tab2[i].append(erreur)
+			tabTrame.pop(i)
+			#print(erreur)
+			
 	return tabTrame
 
-def creerTrame(fichier,tab):	#cree l'entete ethernet en fonction du tableau de trames valides, NE PAS OUBLIER DE AJOUTER DECALAGE OPTIONS IP
+def creerTrame(fichier,tab):	#cree l'entete ethernet en fonction du tableau de trames valides, NE PAS OUBLIER DE AJOUTER DECALAGE OPTIONS IP #------------------------------------  options + decalage
 	cpt=0
 	listTrame = []
 	tabTrame = creerTabTrame(fichier,tab)
@@ -175,6 +194,7 @@ def creerTrame(fichier,tab):	#cree l'entete ethernet en fonction du tableau de t
 		newTrame.typ = trame[24:28]
 
 		if(newTrame.typ == "0800"):			#verification du type datagrame IP
+			print(trame[40:44])
 			tabFrag = ConvHexBin(trame[40:44])
 			flags = tabFrag[:3]
 			fragOffset = tabFrag[4:]
@@ -184,25 +204,23 @@ def creerTrame(fichier,tab):	#cree l'entete ethernet en fonction du tableau de t
 			dataEth.protocol = trame[46:48]
 			dataEth.headerChecksum = trame[48:52]
 			dataEth.options, decalageIP = optionIP(trame, 1) #-----------------------------------------------------------------------------------------------------------
-			if(dataEth.protocol == "01"):						#attribution des donnees ICMP
-				dataEth = ICMP(trame[68:70],trame[70:72],trame[72:76])
 
-			elif(dataEth.protocol == "11"):					#attribution des donnees UDP
-				dataIP = UDP(trame[68:72],trame[72:76])
-				dataIP.length = trame[76:80]
-				dataIP.checksum = trame[80:84]
+			if(dataEth.protocol == "11"):					#attribution des donnees UDP
+				dataIP = UDP(trame[decalageIP+68:decalageIP+72],trame[decalageIP+72:decalageIP+76])
+				dataIP.length = trame[decalageIP+76:decalageIP+80]
+				dataIP.checksum = trame[decalageIP+80:decalageIP+84]
 
 				if(ConvHexDec(dataIP.sourcePortNum) == 67 or ConvHexDec(dataIP.sourcePortNum) == 68):	#attribution des donnees DHCP
-					dataUDP = creerDHCP(trame[84:])
+					dataUDP = creerDHCP(trame[decalageIP+84:])
 
 				elif(ConvHexDec(dataIP.sourcePortNum) == 53 or ConvHexDec(dataIP.destPortNum) == 53):
-					dataUDP = creerDNS(trame[84:])
+					dataUDP = creerDNS(trame[decalageIP+84:])
 				else:
-					dataUDP = noneTypeData(trame[84:],"Donnee UDP non identifiee")
+					dataUDP = noneTypeData(trame[decalageIP+84:],"Donnee UDP non identifiee")
 
 				dataIP.data = dataUDP
 			else:
-				dataIP = noneTypeData(trame[68:],"Donnee non identifiee")
+				dataIP = noneTypeData(trame[decalageIP+68:],"Donnee non identifiee")
 
 			dataEth.data = dataIP
 		else:

@@ -109,7 +109,7 @@ class dnsAnswers:
 			else:
 				self.data = data
 		
-class DHCP: #------------------------------------------------------------------------
+class DHCP: #------------------------------------------------------------------------ modifie
 	def __init__(self,bootRq,hardType,hardAddLength,hops,transID,secColl,bootpFlags,clientIP,yourIP,serverIP,gatewayIP, clientMAC, serverName,bootFileName,magicCookie,options):
 		self.type="DHCP"
 		self.bootRq = bootRq
@@ -125,6 +125,7 @@ class DHCP: #-------------------------------------------------------------------
 		self.gatewayIP = gatewayIP
 		self.clientMAC = clientMAC
 		self.serverName = serverName
+		self.bootFileName = bootFileName
 		self.magicCookie = magicCookie
 		self.options = options
 		
