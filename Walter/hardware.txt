@@ -1,0 +1,43 @@
+Reserved
+Ethernet (10Mb)
+Experimental Ethernet (3Mb)
+Amateur Radio AX.25
+Proteon ProNET Token Ring
+Chaos
+IEEE 802 Networks
+ARCNET
+Hyperchannel
+Lanstar
+Autonet Short Address
+LocalTalk
+LocalNet (IBM PCNet or SYTEK LocalNET)
+Ultra link
+SMDS
+Frame Relay
+Asynchronous Transmission Mode (ATM)
+HDLC
+Fibre Channel
+Asynchronous Transmission Mode (ATM)
+Serial Line
+Asynchronous Transmission Mode (ATM)
+MIL-STD-188-220
+Metricom
+IEEE 1394.1995
+MAPOS
+Twinaxial
+EUI-64
+HIPARP
+IP and ARP over ISO 7816-3
+ARPSec
+IPsec tunnel
+InfiniBand (TM)
+TIA-102 Project 25 Common Air Interface (CAI)
+Wiegand Interface
+Pure IP
+HW_EXP1
+HFI
+Unassigned
+HW_EXP2
+AEthernet
+Unassigned
+Reserved

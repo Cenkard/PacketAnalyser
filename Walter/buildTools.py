@@ -48,9 +48,9 @@ def creerQuery(data,numQ):
 
 	resteQ = queries[j:]
 
-	return querTab,resteQ	#retourne un tableau contenant toutes les queries répertoriees (en fonction du nombre annonce) et le reste de la trame
+	return querTab,resteQ	#retourne un tableau contenant toutes les queries repertoriees (en fonction du nombre annonce) et le reste de la trame
 
-def creerA(data,numA):		#retourne un tableau contenant toutes les answers/authority/addition (dependant de l'appel) répertoriees (en fonction du nombre annonce) et le reste de la trame
+def creerA(data,numA):		#retourne un tableau contenant toutes les answers/authority/addition (dependant de l'appel) repertoriees (en fonction du nombre annonce) et le reste de la trame
 	paquet = data
 	ansTab = []
 	str=""
@@ -134,8 +134,8 @@ def creerDNS(trame):	#cree le paquet dns
 		dataDns.addition = addTab
 	return dataDns
 
-def creerDHCP(dhcpData):	#cree le paquet DHCP
-	dataDHCP = DHCP(dhcpData[:2],dhcpData[2:4],dhcpData[4:6],dhcpData[6:8],dhcpData[8:16],dhcpData[16:20],dhcpData[20:24],dhcpData[24:32],dhcpData[32:40],dhcpData[40:48],dhcpData[48:60],dhcpData[60:80],dhcpData[80:208],dhcpData[208:464],dhcpData[464:472],dhcpData[472:])
+def creerDHCP(dhcpData):	#cree le paquet DHCP --------------------------------------------------------------
+	dataDHCP = DHCP(dhcpData[:2],dhcpData[2:4],dhcpData[4:6],dhcpData[6:8],dhcpData[8:16],dhcpData[16:20],dhcpData[20:24],dhcpData[24:32],dhcpData[32:40],dhcpData[40:48], dhcpData[48, 56], dhcpData[56:88],dhcpData[88:216],dhcpData[216:472], dhcp[472, 488], dhcpData[472:])
 	return dataDHCP
 
 def creerTabTrame(fichier,tab): #recupere les trames valides sous forme de string contenant tous les hexadecimaux a la suite
@@ -161,11 +161,15 @@ def creerTabTrame(fichier,tab): #recupere les trames valides sous forme de strin
 		j=j+1
 	return tabTrame
 
-def creerTrame(fichier,tab):	#cree l'entete ethernet en fonction du tableau de trames valides 
+def creerTrame(fichier,tab):	#cree l'entete ethernet en fonction du tableau de trames valides, NE PAS OUBLIER DE AJOUTER DECALAGE OPTIONS IP
 	cpt=0
 	listTrame = []
 	tabTrame = creerTabTrame(fichier,tab)
 	for trame in tabTrame:
+		dataEth = ""
+		dataIP = ""
+		dataUDP = ""
+
 		cpt+=1
 		newTrame = Trame(cpt,trame[:12],trame[12:24])
 		newTrame.typ = trame[24:28]
@@ -179,6 +183,7 @@ def creerTrame(fichier,tab):	#cree l'entete ethernet en fonction du tableau de t
 			dataEth.TTL = trame[44:46]
 			dataEth.protocol = trame[46:48]
 			dataEth.headerChecksum = trame[48:52]
+			dataEth.options, decalageIP = optionIP(trame, 1) #-----------------------------------------------------------------------------------------------------------
 			if(dataEth.protocol == "01"):						#attribution des donnees ICMP
 				dataEth = ICMP(trame[68:70],trame[70:72],trame[72:76])
 

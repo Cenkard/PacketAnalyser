@@ -37,17 +37,15 @@ def ConvHexBin(nombre):
 	res = ''
 	for i in range(0, l):
 		n = nombre[i].capitalize()
-		if(not(ord(n)>=48 and ord(n)<=57) and not(ord(n)>=65 and ord(n)<=70)):
-			if(not(ord(n)==32)):
-				raise ValueError
-		elif(not(ord(n)==32)):
-			res = res + d[n]
+		if (not(ord(n)>=48 and ord(n)<=57) and not(ord(n)>=65 and ord(n)<=70)):
+			raise ValueError
+		res = res + d[n]
 
 	i=0#eleminer les 0 du debut
 	if (res!=''):
-		while (res[i]=='0' and i<=l):
+		while (res[i]=='0'):
 			i=i+1;
-	return res
+	return res[i:]
 
 def ConvDecHex(nombre):
 	dic = {0:"0", 1:"1",2:"2",3:"3",4:"4",5:"5",6:"6",7:"7",8:"8",9:"9",10:"A",11:"B",12:"C",13:"D",14:"E",15:"F"}
@@ -62,7 +60,6 @@ def ConvDecHex(nombre):
 		nombre = nombre - ch*(16**lim)
 		res = res+dic[ch]
 		lim = lim-1
-
 	return res
 
 
@@ -72,8 +69,8 @@ def FormatIndiceOffset0(FichierTemp, i):#prend en rentrer Fichier et retourne of
 	while (i<l):
 		ligne = FichierTemp[i]
 		try:
-			if (ligne[0]=="0" and ligne[1]=="0"):
-				j=2
+			if (ligne[0:3]=="000"):
+				j=3
 				while(ligne[j]=="0"):
 					j=j+1
 				if (ligne[j]==" "):
@@ -82,7 +79,7 @@ def FormatIndiceOffset0(FichierTemp, i):#prend en rentrer Fichier et retourne of
 			else:
 				i=i+1
 		except IndexError as e:
-			print(e+" FormatIndiceOffset")
+			print(str(e)+" FormatIndiceOffset")
 			i=i+1
 	return -1, -1
 
@@ -124,8 +121,7 @@ def FauxFormatOffset(ligne, TailleOffset): #renvoit si le format d'un offset et 
 	while (ligne[i]!=" " and ligne[i]!="\n"):
 		offset = offset+ligne[i]
 		i=i+1
-
-	if (len(offset)!= TailleOffset or len(offset)<3):
+	if (len(offset)!= TailleOffset):
 		raise ValueError
 	offsetDec = ConvHexDec(offset)
 	return offset, offsetDec
@@ -242,14 +238,13 @@ def TextCleanerTrame(NomFichier): #Enleve tout texte des trames et renovoie list
 		res = ""
 		verif, i, res = VerifierOffset(FichierTemp, i, TailleOffset) #Verif = si ligne valide (correspond a offset), i= ligne de prochain offset valide, res = ligne validee sans texte ou ligne invalide
 		tempi=0
-		TrameValide = 1
+		TrameValide = []
 
 		#ajout trame
 		while (verif!=0):
 			trame.append(res)
 			if (verif == -1):
-				TrameValide = 0
-				print("Erreur verifier ligne : "+str(tempi+1))
+				TrameValide.append("Erreur dans trame, verifier ligne : "+str(tempi+1))
 
 			tempi= i
 
@@ -279,24 +274,304 @@ def EnleverOffset(Fichier):
 			Fichier[i][j] = Fichier[i][j][TailleOffset+1:]
 	return Fichier
 
-"""
-print(ConvHexDec('123afb'))
-print(ConvHexBin('123afb'))
-print(ConvBinDec(ConvHexBin('123afb')))
+def creerTabTrame(fichier,tab): #recupere les trames valides sous forme de string contenant tous les hexadecimaux a la suite
+	i=0
+	j=0
+	trameValide = []
+	tabTrame = []
+	while(i<len(tab)):
+		if(tab[i]==[]):
+			trameValide.append(fichier[i])
+		i+=1
 
-FichierTemp = []
-with open ("trame.txt", "r") as f:
-		FichierTemp = f.readlines()
-Offset0, i = FormatIndiceOffset0(FichierTemp, 0)
-print(Offset0, i)
-TailleOffset = len(Offset0)
-print(VerifierOffset(FichierTemp, i, TailleOffset))
-"""
+	for trame in trameValide:
+		tabTrame.append("")
+		for ligne in trame:
+			i=0
+			ligneCopy = ""
+			while(ligne[i]!=' '):
+				i=i+1
+			i=i+1
+			ligneCopy = ''.join(str(item) for item in ligne[i:])
+			tabTrame[j] = tabTrame[j]+ligneCopy
+		j=j+1
+	return tabTrame
 
-"""
-Fichier, tab = TextCleanerTrame("trame.txt")
-AfficherDim2(Fichier)
-print(tab)
 
-AfficherDim2(EnleverOffset(Fichier))
-"""
+
+def ListOpEnText(L):  #Fonction intermediaire pour le mode texte en optionIP
+	res2= L[0]
+	l = len(L)
+	for i in range(1, l):
+		res2 = res2+"\t\t"+L[i][0]
+		L2 = L[i][1].split("\n")
+		L2 = L2[:-1] #ignorer dernier element vide
+		for el in L2:
+			res2=res2+"\t\t\t"+el+"\n"
+	return res2
+
+def LecteurIpAdresse(trame, i): #Fonction intermediaire pour lire IP (ne pas oublie de faire i=i+8 au retour)
+	fin = i+8
+	addrIP = ""
+	while (i<fin):
+		nb = ConvHexDec(trame[i:i+2])
+		addrIP = addrIP + str(nb) + "."
+		i=i+2
+	return addrIP[:-1]	
+
+def RecordRoute(trame, j):
+	lrr = ConvHexDec(trame[j+2: j+4]) #longueur en octets
+	Pointer = ConvHexDec(trame[j+4:j+6])
+	L= [] #liste de textes a inserer L[0] = ligne de nom, L[1] = type, L[2] = longueur, L[3] = pointeur
+	L.append("IP Option - Record Route ({} bytes)\n".format(lrr))
+	contenu = "Type: 7\nLength: {}\nPointer: {}\n".format(lrr, Pointer)
+	finOp = j+lrr*2-1 #indice du dernier chiffre hexadecimal de cette option
+	i = j+6
+	cpt= 0
+	Pointer = (Pointer-4)/4
+	while (i<=finOp):
+		addrIP = LecteurIpAdresse(trame, i)
+		if (addrIP == "0.0.0.0"):
+			contenu = contenu + "Empty Route: "+addrIP+"\n"
+		else:
+			contenu = contenu + "Recorded Route: "+addrIP+"\n"
+		i = i+8
+
+		#gestion pointer
+		if (Pointer<(lrr-3)/4 and cpt==Pointer):
+			contenu = contenu[:-1]+"  <- (next)\n"
+		cpt=cpt+1
+	L.append(contenu)
+	return i, L
+
+
+def FlagTextTimeStamp(Flag): #fonction intermediaire pour les flag de TimeStamp
+	if (Flag == "0000"):
+		return "Time stamps only (0x0)"
+	elif (Flag == "0001"):
+		return "Time stamp and address (0x1)"
+	elif (Flag== "0011"):
+		return "Time stamp and address prespecified"
+
+def TimeStamp(trame, j):
+	lts = ConvHexDec(trame[j+2: j+4]) #longueur en octets
+	finOp = j+lts*2-1 #indice du dernier chiffre hexadecimal de cette option
+	L= [] #liste de textes a inserer L[0] = ligne de nom, L[1] = type, L[2] = longueur, L[3] = pointeur
+	L.append("IP Option - Time Stamp ({} bytes)\n".format(lts))
+	Pointer = ConvHexDec(trame[j+4:j+6])
+	OverflowBin = ConvHexBin(trame[j+6])
+	OverflowDec = ConvHexDec(trame[j+6])
+	Flag = ConvHexBin(trame[j+7])
+
+	contenu = "Type: 68\nLength: {}\nPointer: {}\n{} .... = Overflow: {}\n.... {} = Flag: {}\n".format(lts, Pointer, OverflowBin, OverflowDec, Flag, FlagTextTimeStamp(Flag))
+
+	i = j+8
+	cpt = 0
+
+	if (Flag=="0000"):
+		while (i<=finOp):
+			nb = str(ConvHexDec(trame[i:i+8]))
+			contenu = contenu +"Time Stamp: "+ nb+"\n"
+			i = i +8
+
+	elif (Flag == "0001" or Flag=="0011"):
+		while (i<=finOp):
+			addrIP = LecteurIpAdresse(trame, i)
+			i = i + 8
+			nb = str(ConvHexDec(trame[i:i+8]))
+			i=i+8
+
+			if (addrIP=="0.0.0.0"):
+				contenu=contenu+"Address: -\nTime Stamp: {}\n".format(nb)
+			else:
+				contenu=contenu+"Address: {}\nTime Stamp: {}\n".format(addrIP, nb)
+
+	L.append(contenu)
+	return i, L
+
+def  LooseSourceRoute(trame, j):
+	lsr = ConvHexDec(trame[j+2: j+4]) #longueur en octets
+	Pointer = ConvHexDec(trame[j+4:j+6])
+	L= [] #liste de textes a inserer L[0] = ligne de nom, L[1] = type, L[2] = longueur, L[3] = pointeur
+	L.append("IP Option - Loose Source Route ({} bytes)\n".format(lsr))
+	contenu = "Type: 131\nLength: {}\nPointer: {}\n".format(lsr, Pointer)
+	finOp = j+lsr*2-1 #indice du dernier chiffre hexadecimal de cette option
+	i = j+6
+	cpt= 0
+	Pointer = (Pointer-4)/4
+	while (i<=finOp):
+		addrIP = LecteurIpAdresse(trame, i)
+		if (i!=finOp-7):
+			contenu = contenu + "Source Route: "+addrIP+"\n"
+		else:
+			contenu = contenu + "Destination: "+addrIP+"\n"
+		i = i+8
+
+		#gestion pointer
+		if (Pointer<(lsr-3)/4-1 and cpt==Pointer):
+			contenu = contenu[:-1]+"  <- (next)\n"
+		cpt=cpt+1
+	L.append(contenu)
+	return i, L
+	
+def StrictSourceRoute(trame, j):
+	lss = ConvHexDec(trame[j+2: j+4]) #longueur en octets
+	Pointer = ConvHexDec(trame[j+4:j+6])
+	L= [] #liste de textes a inserer L[0] = ligne de nom, L[1] = type, L[2] = longueur, L[3] = pointeur
+	L.append("IP Option - Strict Source Route ({} bytes)\n".format(lss))
+	contenu = "Type: 137\nLength: {}\nPointer: {}\n".format(lss, Pointer)
+	finOp = j+lss*2-1 #indice du dernier chiffre hexadecimal de cette option
+	i = j+6
+	cpt= 0
+	Pointer = (Pointer-4)/4
+	while (i<=finOp):
+		addrIP = LecteurIpAdresse(trame, i)
+		if (i!=finOp-7):
+			contenu = contenu + "Source Route: "+addrIP+"\n"
+		else:
+			contenu = contenu + "Destination: "+addrIP+"\n"
+		i = i+8
+
+		#gestion pointer
+		if (Pointer<(lss-3)/4-1 and cpt==Pointer):
+			contenu = contenu[:-1]+"  <- (next)\n"
+		cpt=cpt+1
+	L.append(contenu)
+	return i, L
+
+def optionIP(trameTot,mod): #prend en entree une trame retourne ses options decodes #0,1,7,68, 131,137, mod = 0 retourne liste, sinon retourne texte
+	cpt = 0
+	trame = trameTot[28:] #on s'occupe que de la partie IP
+	LongOp = ConvHexDec(trame[1])*4 - 20
+	finOps = 40 + LongOp*2 -1 #indice du dernier chiffre hexadecimal d'option
+	res = []
+	res.append("\tOptions: ({} bytes)\n".format(LongOp)) # L[0] = ligne de titre options, a partir de L[1] on commences les differentes options, avec e.g. L[1][0] le titre et L[1][1] le contenu
+	if (LongOp==0):
+		return None
+	else:
+		i = 40
+		while (i<=finOps):
+			typ = ConvHexDec(trame[i:i+2])
+			op = ""
+			if (typ==0):
+				i, op= finOps+1, ["IP Option - End of Option List (EOL)\n", "Type: 0\n"]
+			elif (typ==1):
+				i, op = i+2, ["IP Option - No-Operation (NOP)\n", "Type: 1\n"]
+			elif (typ==7):
+				i, op = RecordRoute(trame, i)
+			elif (typ==68):
+				i, op = TimeStamp(trame, i)
+			elif (typ==131):
+				i, op = LooseSourceRoute(trame, i)
+			elif (typ==137):
+				i, op = StrictSourceRoute(trame, i)
+			else:
+				i, op = i+2, ["Erreur, option non reconnue", "Uknown"]
+				cpt = cpt+1
+
+
+			if (op!= ["Erreur, option non reconnue", "Uknown"] or cpt==1):#gestion de plusieurs octets d option inconnue
+				if (op!= "Erreur, option non reconnue"):
+					cpt = 0
+				res.append(op)
+
+	if (mod==0):
+		return res, LongOp*2
+
+	return ListOpEnText(res), LongOp*2
+
+def messageDHCP(nb):
+	nbDec = ConvHexDec(nb)
+	if (nbDec==1):
+		return "DHCP Discover ({})".format(nbDec)
+	elif (nbDec==2):
+		return "DHCP Offer ({})".format(nbDec)
+	elif (nbDec==3):
+		return "DHCP ACK ({})".format(nbDec)
+	elif (nbDec==4):
+		return "DHCP NAK ({})".format(nbDec)
+	elif (nbDec==5):
+		return "DHCP Discover ({})".format(nbDec)
+	elif (nbDec==6):
+		return "DHCP Decline ({})".format(nbDec)
+	elif (nbDec==7):
+		return "DHCP Release ({})".format(nbDec)
+	elif (nbDec==8):
+		return "DHCP Inform ({})".format(nbDec)
+	else:
+		return "Unknown code".format(nbDec)
+
+def hardwareDHCP(code):
+	nbDec = ConvHexDec(nb)
+	dico = {0: 'NET/ROM pseudo (reserved)', 1: 'Ethernet (10Mb)', 2: 'Experimental Ethernet (3Mb)', 3: 'Amateur Radio AX.25', 4: 'Proteon ProNET Token Ring', 5: 'Chaos', 6: 'IEEE 802 Networks', 7: 'ARCNET', 8: 'Hyperchannel', 9: 'Lanstar', 10: 'Autonet Short Address', 11: 'LocalTalk', 12: 'LocalNet (IBM PCNet or SYTEK LocalNET)', 13: 'Ultra link', 14: 'SMDS', 15: 'Frame Relay', 16: 'Asynchronous Transmission Mode (ATM)', 17: 'HDLC', 18: 'Fibre Channel', 19: 'Asynchronous Transmission Mode (ATM)', 20: 'Serial Line', 21: 'Asynchronous Transmission Mode (ATM)', 22: 'MIL-STD-188-220', 23: 'Metricom', 24: 'IEEE 1394.1995', 25: 'MAPOS', 26: 'Twinaxial', 27: 'EUI-64', 28: 'HIPARP', 29: 'IP and ARP over ISO 7816-3', 30: 'ARPSec', 31: 'IPsec tunnel', 32: 'InfiniBand (TM)', 33: 'TIA-102 Project 25 Common Air Interface (CAI)', 34: 'Wiegand Interface', 35: 'Pure IP', 36: 'HW_EXP1', 37: 'HFI', 38: 'Unassigned', 256: 'HW_EXP2', 257: 'AEthernet', 258: 'Unassigned', 42: 'Reserved'}
+	if ((nbDec>37 and nbDec<256) or (nbDec>257 and nbDec<65535)):
+		return dico[38]
+	elif (nbDec in dico):
+		return dico[nbDec]
+	return "Unknown"
+
+
+def BootpFlags(flag):
+	if (flag=="0000"):
+		return "0000 (unicast)"  
+	elif (flag=="1000"):
+		return "1000 (broadcast)"  
+	return flag+" unknown"
+
+def LecteurMAC(clMAC, i):
+	fin = i+12
+	addrMAC = ""
+	while (i<fin):
+		addrMAC = addrMAC + clMACp[i:i+2] + ":"
+		i=i+2
+	return addrMAC[:-1]	
+
+def ClientMAC(mac):
+	clientMAC = mac[:12]
+	if (clientMAC!="000000000000"):
+		return "\tClient MAC address: {}\n\tClient hardware address padding: {}\n".format(LecteurMAC(clientMAC,0), mac[12:])
+	else:
+		return "\tClient address not given"
+
+def ServerHostName(octets): #je vais transforme en ascii si necessaire
+	if (octets[0:20]=="00000000000000000000"):
+		return "\tServer host name not given"
+	else:
+		nouvOctets = octets[:2]
+		octets = octets[2:]
+		i=0
+		while(i!=126 and octets[i]!=0):
+			nouvOctets= nouvOctets+el
+			i=i+1
+		return "\tServer host name: "+nouvOctets+"\n" #il suffit de transformet ca en ascii si necessaire
+
+def BootFileName(octets): #je vais transforme en ascii si necessaire
+	if (octets[0:20]=="00000000000000000000"):
+		return "\tBoot file name not given"
+	else:
+		nouvOctets = octets[:2]
+		octets = octets[2:]
+		i=0
+		while(i!=126 and octets[i]!=0):
+			nouvOctets= nouvOctets+el
+			i=i+1
+		return "\tBoot file name: "+nouvOctets+"\n" #il suffit de transformet ca en ascii si necessaire
+
+def MagicCookie(cookie):
+	if (cookie=="63825363"):
+		return "DHCP"
+	else:
+		return "Uknown"
+
+def optionDHCP(options):
+	pass
+
+
+
+fichier, tab = TextCleanerTrame("SSR.txt")
+fichier = creerTabTrame(fichier, tab)
+AfficherDim2(optionIP(fichier[0], 1))
+
+
+
+

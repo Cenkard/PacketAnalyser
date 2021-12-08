@@ -109,8 +109,8 @@ class dnsAnswers:
 			else:
 				self.data = data
 		
-class DHCP:
-	def __init__(self,bootRq,hardType,hardAddLength,hops,transID,secColl,bootpFlags,clientIP,yourIP,agentIP,clientMAC,clientHardPadding,serverName,bootName,magicCookie,options):
+class DHCP: #------------------------------------------------------------------------
+	def __init__(self,bootRq,hardType,hardAddLength,hops,transID,secColl,bootpFlags,clientIP,yourIP,serverIP,gatewayIP, clientMAC, serverName,bootFileName,magicCookie,options):
 		self.type="DHCP"
 		self.bootRq = bootRq
 		self.hardType = hardType
@@ -121,17 +121,13 @@ class DHCP:
 		self.bootpFlags = bootpFlags
 		self.clientIP = clientIP
 		self.yourIP = yourIP
-		self.agentIP = agentIP
+		self.serverIP = serverIP
+		self.gatewayIP = gatewayIP
 		self.clientMAC = clientMAC
-		self.clientHardPadding = clientHardPadding
 		self.serverName = serverName
-		self.bootName = bootName
 		self.magicCookie = magicCookie
-
 		self.options = options
-		def readOptions(options):
-			if(options):
-				pass;
+		
 
 class noneTypeData:
 		def __init__(self,data,type):

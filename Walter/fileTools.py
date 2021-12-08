@@ -42,6 +42,7 @@ def afficherTrameDetail(listTrame):
 				f.write("\tChecksum : 0x"+dataEth.headerChecksum+" [validation disabled]\n")
 				f.write("\tDestination IP : "+str(dataEth.destinationIP)+"\n")
 				f.write("\tSource IP : "+str(dataEth.sourceIP)+"\n")
+				f.write(dataEth.options) #------------------------------
 
 				if(dataEth.data.type == "ICMP"):
 					dataIP = trame.data
@@ -118,9 +119,25 @@ def afficherTrameDetail(listTrame):
 
 					elif(dataIP.data.type == "DHCP"):
 						dataUDP = dataIP.data
-						f.write("Dinamic Host Configuration Protocol : ("+dataUDP.type+")\n")
-						f.write("\tMessage type : "+str(ConvHexDec(dataUDP.bootRq))+"	(0x"+dataUDP.bootRq+")\n")
-						f.write("\tChecksum : 0x"+dataIP.checksum+" [validation disabled]\n")
+						f.write("Dynamic Host Configuration Protocol")
+						f.write("\tMessage type: "+messageDHCP(dataIP.data))
+						f.write("\tHardware type: "+hardwareDHCP(dataIP.data))
+						f.write("\tHardware address length: "+ConvHexDec(dataIP.data.hardAddLength))
+						f.write("\tHops: "+ConvHexDec(dataIP.data.hops))
+						f.write("\tTransaction ID: 0x"+dataIP.data.transID)
+						f.write("\tSeconds elapsed: "+ConvHexDec(dataIP.data.secColl))
+						f.write("\tBootp flags: 0x"+BootpFlags(dataIP.data.bootpFlags)) #retourne texte selon broadcast ou unicast
+						f.write("\tClient IP address: "+LecteurIpAdresse(dataIP.data.clientIP, 0))
+						f.write("\tYour (client) IP address: "+LecteurIpAdresse(dataIP.data.yourIP, 0))
+						f.write("\tNext Server IP address: "+LecteurIpAdresse(dataIP.data.serverIP, 0))
+						f.write("\tRelay agent IP address: "+LecteurIpAdresse(dataIP.data.gatewayIP, 0))
+						f.write(ClientMAC(dataIP.data)) #retourne MAC selon si ca existe ou pas
+						f.write(ServerHostName(dataIP.data))#retourne le nom selon s'il existe ou pas
+						f.write(BootFileName(dataIP.data)) #retourne le nom du bootfile selon s'il est donne ou pas
+						f.write("\tMagic Cookie: "+MagicCookie(dataIP.data.magicCookie))
+						f.write(optionDHCP(dataIP.data.options))
+
+
 						
 					else:
 						f.write("\nData not identified...\n")
