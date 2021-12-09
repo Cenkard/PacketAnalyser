@@ -194,7 +194,7 @@ def creerTrame(fichier,tab):	#cree l'entete ethernet en fonction du tableau de t
 		newTrame.typ = trame[24:28]
 
 		if(newTrame.typ == "0800"):			#verification du type datagrame IP
-			print(trame[40:44])
+			#print(trame[40:44])
 			tabFrag = ConvHexBin(trame[40:44])
 			flags = tabFrag[:3]
 			fragOffset = tabFrag[4:]

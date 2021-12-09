@@ -1,7 +1,7 @@
 import math as m
 import sys
 from outils import *
-
+#----------------------------------------------Convertisseurs
 def ConvHexDec(nb):
 	nombre = SupprimerEspace(nb)
 
@@ -62,7 +62,7 @@ def ConvDecHex(nombre):
 		lim = lim-1
 	return res
 
-
+#---------------------------------------------- Netoyage texte 
 
 def FormatIndiceOffset0(FichierTemp, i):#prend en rentrer Fichier et retourne offset nul suivante
 	l = len(FichierTemp)
@@ -86,7 +86,6 @@ def FormatIndiceOffset0(FichierTemp, i):#prend en rentrer Fichier et retourne of
 
 
 def SupprimerEspace(element):
-	print(element)
 	res = ""
 	for el in element:
 		if (el!=" "):
@@ -319,7 +318,7 @@ def creerTabTrame(fichier,tab): #recupere les trames valides sous forme de strin
 	return tabTrame
  
 
-
+#--------------------------------------------------------------------------------------- Options IP
 def ListOpEnText(L):  #Fonction intermediaire pour le mode texte en optionIP
 	res2= L[0]
 	l = len(L)
@@ -487,11 +486,11 @@ def optionIP(trameTot,mod): #prend en entree une trame retourne ses options deco
 			elif (typ==137):
 				i, op = StrictSourceRoute(trame, i)
 			else:
-				i, op = i+2, ["Erreur, option non reconnue", "Uknown"]
+				i, op = i+2, ["Erreur, option non reconnue", "Unknown"]
 				cpt = cpt+1
 
 
-			if (op!= ["Erreur, option non reconnue", "Uknown"] or cpt==1):#gestion de plusieurs octets d option inconnue
+			if (op!= ["Erreur, option non reconnue", "Unknown"] or cpt==1):#gestion de plusieurs octets d option inconnue
 				if (op!= "Erreur, option non reconnue"):
 					cpt = 0
 				res.append(op)
@@ -501,26 +500,15 @@ def optionIP(trameTot,mod): #prend en entree une trame retourne ses options deco
 
 	return ListOpEnText(res), LongOp*2
 
+#----------------------------------------------------------------------------------------- DHCP
 def messageDHCP(nb):
 	nbDec = ConvHexDec(nb)
 	if (nbDec==1):
-		return "DHCP Discover ({})".format(nbDec)
+		return "Message type: Boot Request ({})".format(nbDec)
 	elif (nbDec==2):
-		return "DHCP Offer ({})".format(nbDec)
-	elif (nbDec==3):
-		return "DHCP ACK ({})".format(nbDec)
-	elif (nbDec==4):
-		return "DHCP NAK ({})".format(nbDec)
-	elif (nbDec==5):
-		return "DHCP Discover ({})".format(nbDec)
-	elif (nbDec==6):
-		return "DHCP Decline ({})".format(nbDec)
-	elif (nbDec==7):
-		return "DHCP Release ({})".format(nbDec)
-	elif (nbDec==8):
-		return "DHCP Inform ({})".format(nbDec)
-	else:
-		return "Unknown code".format(nbDec)
+		return "Message type: Boot Reply ({})".format(nbDec)
+	return "Message type: unknown"
+	
 
 def hardwareDHCP(code):
 	nbDec = ConvHexDec(code)
@@ -554,7 +542,7 @@ def ClientMAC(mac):
 	else:
 		return "\tClient address not given"
 
-def ServerHostName(octets): #je vais transforme en ascii si necessaire
+def ServerHostName(octets): #trans?
 	if (octets[0:20]=="00000000000000000000"):
 		return "\tServer host name not given"
 	else:
@@ -566,7 +554,7 @@ def ServerHostName(octets): #je vais transforme en ascii si necessaire
 			i=i+1
 		return "\tServer host name: "+nouvOctets #il suffit de transformet ca en ascii si necessaire
 
-def BootFileName(octets): #je vais transforme en ascii si necessaire
+def BootFileName(octets):#trans?
 	if (octets[0:20]=="00000000000000000000"):
 		return "\tBoot file name not given"
 	else:
@@ -582,25 +570,241 @@ def MagicCookie(cookie):
 	if (cookie=="63825363"):
 		return "DHCP"
 	else:
-		return "Uknown"
+		return "Unknown"
 
-def optionDHCP(options):
-	return "\tOptions a venir"
+#--------------------------------------------------------------------------------------- Options DHCP
 
 def ListOpDHCPEnText(L):  #Fonction intermediaire pour le mode texte en optionIP
 	l = len(L)
 	res2 = ""
 	for i in range(l):
 		op = L[i]
-		res2=res2+"\t"+op[0]+"n"
-
+		res2=res2+"\t"+op[0]+"\n"
+		#print(op[1])
 		L2 = op[1].split("\n")
 		L2 = L2[:-1] #ignorer dernier element vide
 		for el in L2:
 			res2=res2+"\t\t"+el+"\n"
 	return res2
 
-def optionDHCP2(options):
+def DHCPoption3(options, j):
+	i = j
+	op = ["Option: ({}) Router Option".format(3)]
+	contenu = ""
+	l = ConvHexDec(options[i+2:i+4])
+	FinOp = i+4+l*2-1
+	cpt = 1
+	i=i+4
+	contenu = contenu+"Length: {}\n".format(l)
+	while (i <= FinOp):
+		addrIP = LecteurIpAdresse(options, i)
+		contenu= contenu+"Router preference {}: ".format(cpt)+addrIP+"\n"
+		cpt= cpt+1
+		i=i+8
+	op.append(contenu)
+	return i, op
+
+def DHCPoption6(options, j):
+	i = j
+	op = ["Option: ({}) Domain Name Server Option".format(6)]
+	contenu = ""
+	l = ConvHexDec(options[i+2:i+4])
+	FinOp = i+4+l*2-1
+	cpt = 1
+	i=i+4
+	contenu = contenu+"Length: {}\n".format(l)
+	while (i <= FinOp):
+		addrIP = LecteurIpAdresse(options, i)
+		contenu= contenu+"DNS server preference {}: ".format(cpt)+addrIP+"\n"
+		cpt= cpt+1
+		i=i+8
+	op.append(contenu)
+	return i, op
+
+def DHCPoption4(options, j): 
+	i = j
+	op = ["Option: ({}) Time Server Option".format(4)]
+	contenu = ""
+	l = ConvHexDec(options[i+2:i+4])
+	FinOp = i+4+l*2-1
+	cpt = 1
+	i=i+4
+	contenu = contenu+"Length: {}\n".format(l)
+	while (i <= FinOp):
+		addrIP = LecteurIpAdresse(options, i)
+		contenu= contenu+"Time Server Option preference {}: ".format(cpt)+addrIP+"\n"
+		cpt= cpt+1
+		i=i+8
+	op.append(contenu)
+	return i, op
+
+def DHCPoption12(options, j): #trans?
+	i = j
+	op = ["Option: ({}) Host Name Option".format(12)]
+	contenu = ""
+	l = ConvHexDec(options[i+2:i+4])
+	FinOp = i+4+l*2-1
+	i = i+4
+	contenu = contenu+"Length: {}\n".format(l)
+
+	nom= "Host Name: "
+	octets = ""
+	while (i<=FinOp and options[i:i+2]!="00"):
+		octets = octets+options[i:i+2]
+		i=i+2
+	nom = nom + octets + "\n" #transforme octets en ascii si necessaire
+	contenu = contenu+nom
+	op.append(contenu)
+	return FinOp+1, op
+
+def DHCPoption15(options, j): #trans?
+	i = j
+	op = ["Option: ({}) Domain Name".format(15)]
+	contenu = ""
+	l = ConvHexDec(options[i+2:i+4])
+	FinOp = i+4+l*2-1
+	i = i+4
+	contenu = contenu+"Length: {}\n".format(l)
+
+	nom= "Domain Name: "
+	octets = ""
+	while (i<=FinOp and options[i:i+2]!="00"):
+		octets = octets+options[i:i+2]
+		i=i+2
+	nom = nom + octets + "\n" #transforme octets en ascii si necessaire
+	contenu = contenu+nom
+	op.append(contenu)
+	return FinOp+1, op
+
+def DHCPoption42(options, j):
+	i = j
+	op = ["Option: ({}) Network Time Protocol Servers Option".format(42)]
+	contenu = ""
+	l = ConvHexDec(options[i+2:i+4])
+	FinOp = i+4+l*2-1
+	cpt = 1
+	i=i+4
+	contenu = contenu+"Length: {}\n".format(l)
+	while (i <= FinOp):
+		addrIP = LecteurIpAdresse(options, i)
+		contenu= contenu+"Network Time Protocol Server preference {}: ".format(cpt)+addrIP+"\n"
+		cpt= cpt+1
+		i=i+8
+	op.append(contenu)
+	return i, op
+
+def DHCPoption48(options, j):
+	i = j
+	op = ["Option: ({}) X Window System Font Server Option".format(48)]
+	contenu = ""
+	l = ConvHexDec(options[i+2:i+4])
+	FinOp = i+4+l*2-1
+	cpt = 1
+	i=i+4
+	contenu = contenu+"Length: {}\n".format(l)
+	while (i <= FinOp):
+		addrIP = LecteurIpAdresse(options, i)
+		contenu= contenu+"X Window System Font Server Option preference {}: ".format(cpt)+addrIP+"\n"
+		cpt= cpt+1
+		i=i+8
+	op.append(contenu)
+	return i, op
+
+def DHCPoption61(options, j): #transformation ascii non necessaire
+	i = j
+	op = ["Option: ({}) Client-identifier".format(61)]
+	contenu = ""
+	l = ConvHexDec(options[i+2:i+4])
+	FinOp = i+4+l*2-1
+	contenu = contenu+"Length: {}\nHardware type: {}\n".format(l, hardwareDHCP(options[i+4:i+6]))
+	i = i+6
+
+	nom= "Client-identifier: "
+	octets = ""
+	while (i<=FinOp and options[i:i+2]!="00"):
+		octets = octets+options[i:i+2]+":"
+		i=i+2
+	nom = nom + octets[:-1] + "\n" #transforme octets en ascii si necessaire
+	contenu = contenu+nom
+	op.append(contenu)
+	return FinOp+1, op
+
+
+def DHCPoption60(options, j): #trans?
+	i = j
+	op = ["Option: ({}) Vendor class identifier".format(60)]
+	contenu = ""
+	l = ConvHexDec(options[i+2:i+4])
+	FinOp = i+4+l*2-1
+	i = i+4
+	contenu = contenu+"Length: {}\n".format(l)
+
+	nom= "Vendor class identifier: "
+	octets = ""
+	while (i<=FinOp and options[i:i+2]!="00"):
+		octets = octets+options[i:i+2]
+		i=i+2
+	nom = nom + octets + "\n" #transforme octets en ascii si necessaire
+	contenu = contenu+nom
+	op.append(contenu)
+	return FinOp+1, op
+
+def DHCPoptionPad(options, j):
+	i = j
+	op = ["Padding: ", ""]
+	FinOp = len(options)-1
+	while (i<=FinOp):
+		op[0] = op[0]+"00"
+		i = i+2
+	return i, op
+
+def nomOpDHCP(nb):
+	dico = {0: 'Pad', 1: 'SubnetMask', 2: 'TimeOffset', 3: 'Router', 4: 'TimeServer', 5: 'NameServer', 6: 'DomainServer', 7: 'LogServer', 8: 'QuotesServer', 9: 'LPRServer', 10: 'ImpressServer', 11: 'RLPServer', 12: 'Hostname', 13: 'BootFileSize', 14: 'MeritDumpFile', 15: 'DomainName', 16: 'SwapServer', 17: 'RootPath', 18: 'ExtensionFile', 19: 'ForwardOn/Off', 20: 'SrcRteOn/Off', 21: 'PolicyFilter', 22: 'MaxDGAssembly', 23: 'DefaultIPTTL', 24: 'MTUTimeout', 25: 'MTUPlateau', 26: 'MTUInterface', 27: 'MTUSubnet', 28: 'BroadcastAddress', 29: 'MaskDiscovery', 30: 'MaskSupplier', 31: 'RouterDiscovery', 32: 'RouterRequest', 33: 'StaticRoute', 34: 'Trailers', 35: 'ARPTimeout', 36: 'Ethernet', 37: 'DefaultTCPTTL', 38: 'KeepaliveTime', 39: 'KeepaliveData', 40: 'NISDomain', 41: 'NISServers', 42: 'NTPServers', 43: 'VendorSpecific', 44: 'NETBIOSNameSrv', 45: 'NETBIOSDistSrv', 46: 'NETBIOSNodeType', 47: 'NETBIOSScope', 48: 'XWindowFont', 49: 'XWindowManager', 50: 'AddressRequest', 51: 'AddressTime', 52: 'Overload', 53: 'DHCPMsgType', 54: 'DHCPServerId', 55: 'ParameterList', 56: 'DHCPMessage', 57: 'DHCPMaxMsgSize', 58: 'RenewalTime', 59: 'RebindingTime', 60: 'ClassId', 61: 'ClientId', 62: 'NetWare/IPDomain', 63: 'NetWare/IPOption', 64: 'NIS-Domain-Name', 65: 'NIS-Server-Addr', 66: 'Server-Name', 67: 'Bootfile-Name', 68: 'Home-Agent-Addrs', 69: 'SMTP-Server', 70: 'POP3-Server', 71: 'NNTP-Server', 72: 'WWW-Server', 73: 'Finger-Server', 74: 'IRC-Server', 75: 'StreetTalk-Server', 76: 'STDA-Server', 77: 'User-Class', 78: 'DirectoryAgent', 79: 'ServiceScope', 80: 'RapidCommit', 81: 'ClientFQDN', 82: 'RelayAgentInformation', 83: 'iSNS', 84: 'REMOVED/Unassigned', 85: 'NDSServers', 86: 'NDSTreeName', 87: 'NDSContext', 88: 'BCMCSControllerDomainNamelist', 89: 'BCMCSControllerIPv4addressoption', 90: 'Authentication', 91: 'client-last-transaction-timeoption', 92: 'associated-ipoption', 93: 'ClientSystem', 94: 'ClientNDI', 95: 'LDAP', 96: 'REMOVED/Unassigned', 97: 'UUID/GUID', 98: 'User-Auth', 99: 'GEOCONF_CIVIC', 100: 'PCode', 101: 'TCode', 108: 'REMOVED/Unassigned', 109: 'OPTION_DHCP4O6_S46_SADDR', 110: 'REMOVED/Unassigned', 111: 'Unassigned', 112: 'NetinfoAddress', 113: 'NetinfoTag', 114: 'URL', 115: 'REMOVED/Unassigned', 116: 'Auto-Config', 117: 'NameServiceSearch', 118: 'SubnetSelectionOption', 119: 'DomainSearch', 120: 'SIPServersDHCPOption', 121: 'ClasslessStaticRouteOption', 122: 'CCC', 123: 'GeoConfOption', 124: 'V-IVendorClass', 125: 'V-IVendor-SpecificInformation', 126: 'Removed/Unassigned', 127: 'Removed/Unassigned', 128: 'TFTPServerIPaddress(forIPPhonesoftwareload)', 129: 'CallServerIPaddress', 130: 'Discriminationstring(toidentifyvendor)', 131: 'RemotestatisticsserverIPaddress', 132: 'IEEE802.1QVLANID', 133: 'IEEE802.1D/pLayer2Priority', 134: 'DiffservCodePoint(DSCP)forVoIPsignallingandmediastreams', 135: 'HTTPProxyforphone-specificapplications', 136: 'OPTION_PANA_AGENT', 137: 'OPTION_V4_LOST', 138: 'OPTION_CAPWAP_AC_V4', 139: 'OPTION-IPv4_Address-MoS', 140: 'OPTION-IPv4_FQDN-MoS', 141: 'SIPUAConfigurationServiceDomains', 142: 'OPTION-IPv4_Address-ANDSF', 143: 'OPTION_V4_SZTP_REDIRECT', 144: 'GeoLoc', 145: 'FORCERENEW_NONCE_CAPABLE', 146: 'RDNSSSelection', 150: 'GRUBconfigurationpathname', 151: 'status-code', 152: 'base-time', 153: 'start-time-of-state', 154: 'query-start-time', 155: 'query-end-time', 156: 'dhcp-state', 157: 'data-source', 158: 'OPTION_V4_PCP_SERVER', 159: 'OPTION_V4_PORTPARAMS', 160: 'DHCPCaptive-Portal', 161: 'OPTION_MUD_URL_V4', 175: 'Etherboot(TentativelyAssigned\xe2\x80\x932005-06-23)', 176: 'IPTelephone(TentativelyAssigned\xe2\x80\x932005-06-23)', 177: 'PacketCableandCableHome(replacedby122)', 208: 'PXELINUXMagic', 209: 'ConfigurationFile', 210: 'PathPrefix', 211: 'RebootTime', 212: 'OPTION_6RD', 213: 'OPTION_V4_ACCESS_DOMAIN', 220: 'SubnetAllocationOption', 221: 'VirtualSubnetSelection(VSS)Option', 255: 'End', 257: 'Reserved(PrivateUse'}
+	#224-254 Reserved (Private Use)
+	if (nb>=224 and nb<=254):
+		nb= 257
+	if (nb not in dico):
+		return "Unasigned"
+	return dico[nb]
+	 
+def DHCPoption55(options, j):
+	i = j
+	op = ["Option: ({}) Parameter Request List".format(55)]
+	contenu = ""
+	l = ConvHexDec(options[i+2:i+4])
+	FinOp = i+4+l*2-1
+	i = i+4
+	contenu = contenu+"Length: {}\n".format(l)
+	while (i<=FinOp):
+		octet = options[i:i+2]
+		nb = ConvHexDec(octet)
+		contenu = contenu+"Parameter Request List Item: ({}) {}\n".format(nb, nomOpDHCP(nb))
+		i=i+2
+	op.append(contenu)
+	return FinOp+1, op
+
+def messageTypeDHCP(nb):
+	nbDec = ConvHexDec(nb)
+	if (nbDec==1):
+		return "DHCP: Discover ({})".format(nbDec)
+	elif (nbDec==2):
+		return "DHCP: Offer ({})".format(nbDec)
+	elif (nbDec==3):
+		return "DHCP: Request ({})".format(nbDec)
+	elif (nbDec==4):
+		return "DHCP: Decline ({})".format(nbDec)
+	elif (nbDec==5):
+		return "DHCP: ACK ({})".format(nbDec)
+	elif (nbDec==6):
+		return "DHCP: NAK ({})".format(nbDec)
+	elif (nbDec==7):
+		return "DHCP: Release ({})".format(nbDec)
+	elif (nbDec==8):
+		return "DHCP: Inform ({})".format(nbDec)
+	else:
+		return "Unknown code".format(nbDec)
+
+def optionDHCP(options, mod):
 	cpt = 0
 	LongOp = len(options)
 	finOps = len(options)-1
@@ -608,7 +812,7 @@ def optionDHCP2(options):
 	if (options == "0"*LongOp):
 		return "\tPas d'options"
 	elif (options[0:2]=="ff"):
-		return 
+		return "\tPas d'options"
 	else:
 		i= 0
 		while (i<=finOps):
@@ -617,73 +821,71 @@ def optionDHCP2(options):
 			if (typ==1):
 				l = ConvHexDec(options[i+2:i+4])
 				SubMask = LecteurIpAdresse(options, i+4)
-				i, op = i+8, ["\tOption ({}) Subnetmask ({})\n\t"]
+				i, op = i+12, ["Option: ({}) Subnet Mask ({})".format(typ, SubMask), "Length: {}\nSubnet Mask: {}\n".format(l, SubMask)]
 			elif (typ==3):
-				i, op = i+2, ["IP Option - No-Operation (NOP)\n", "Type: 1\n"]
+				i, op = DHCPoption3(options, i)
 			elif (typ==6):
-				i, op = RecordRoute(trame, i)
+				i, op = DHCPoption6(options, i)
 			elif (typ==51):
-				i, op = TimeStamp(trame, i)
+				l = ConvHexDec(options[i+2:i+4])
+				LeaseTime = ConvHexDec(options[i+4:i+12])
+				i, op = i+12, ["Option: ({}) IP Address Lease Time".format(typ), "Length: {}\nIP Address Lease Time: ({}) seconds\n".format(l, LeaseTime)]
 			elif (typ==2):
-				i, op = LooseSourceRoute(trame, i)
+				l = ConvHexDec(options[i+2:i+4])
+				TimeOffset = ConvHexBin(options[i+4:i+12])
+				i, op = i+12, ["Option: ({}) Time Offset".format(typ), "Length: {}\nTime Offset: ({}) seconds\n".format(l, TimeOffset)]
 			elif (typ==4):
-				i, op = StrictSourceRoute(trame, i)
+				i, op = DHCPoption4(options, i)
 			elif (typ==12):
-				i, op = StrictSourceRoute(trame, i)
+				i, op = DHCPoption12(options, i)
 			elif (typ==15):
-				i, op = StrictSourceRoute(trame, i)
+				i, op = DHCPoption15(options, i)
 			elif (typ==42):
-				i, op = StrictSourceRoute(trame, i)
+				i, op = DHCPoption42(options, i)
 			elif (typ==48):
-				i, op = StrictSourceRoute(trame, i)
-			elif (typ==69):
-				i, op = StrictSourceRoute(trame, i)
-			elif (typ==81):
-				i, op = StrictSourceRoute(trame, i)
-			elif (typ==100):
-				i, op = StrictSourceRoute(trame, i)
-			elif (typ==101):
-				i, op = StrictSourceRoute(trame, i)
-			elif (typ==119):
-				i, op = StrictSourceRoute(trame, i)
-			elif (typ==121):
-				i, op = StrictSourceRoute(trame, i)
+				i, op = DHCPoption48(options, i)
 			elif (typ==61):
-				i, op = StrictSourceRoute(trame, i)
-			elif (typ==12):
-				i, op = StrictSourceRoute(trame, i)
+				i, op = DHCPoption61(options, i)
 			elif (typ==60):
-				i, op = StrictSourceRoute(trame, i)
+				i, op = DHCPoption60(options, i)
 			elif (typ==55):
-				i, op = StrictSourceRoute(trame, i)
+				i, op = DHCPoption55(options, i)
 			elif (typ==53):
-				i, op = StrictSourceRoute(trame, i)
+				i, op = i+6, ["Option: ({}) DHCP Message Type".format(typ), "Length: {}\n{}\n".format(1, messageTypeDHCP(options[i+4:i+6]))]
 			elif (typ==50):
-				i, op = StrictSourceRoute(trame, i)
+				i, op = i+12, ["Option: ({}) Requested IP Address".format(typ), "Length: {}\nRequested IP Address: {}\n".format(1,LecteurIpAdresse(options[i+4:i+12], 0))]
 			elif (typ==255):
-				i, op = StrictSourceRoute(trame, i)
+				i, op = i+2, ["Option: ({}) End".format(typ), "Option End: {}\n".format(typ)]
 			elif (typ==59):
-				i, op = StrictSourceRoute(trame, i)
+				l = ConvHexDec(options[i+2:i+4])
+				RebindTime = ConvHexDec(options[i+4:i+12])
+				i, op = i+12, ["Option: ({}) Rebinding Time Value".format(typ), "Length: {}\nRebinding Time Value: ({}) seconds\n".format(l, RebindTime)]
 			elif (typ==54):
-				i, op = StrictSourceRoute(trame, i)
+				i, op = i+12, ["Option: ({}) DHCP Server Identifier".format(typ), "Length: {}\nDHCP Server Identifier: {}\n".format(4, LecteurIpAdresse(options[i+4:i+12], 0))]
+			elif (typ==0):
+				i, op = DHCPoptionPad(options, i)
+			elif (typ==58):
+				l = ConvHexDec(options[i+2:i+4])
+				RenewalTime = ConvHexDec(options[i+4:i+12])
+				i, op = i+12,["Option: ({}) Renewal Time Value".format(typ), "Length: {}\nRenewal Time Value: ({}) seconds\n".format(l, RenewalTime)]
 			else:
-				i, op = i+2, ["Erreur, option non reconnue", "Uknown"]
+				i, op = i+2, ["Erreur, option non reconnue {}".format(typ), "Unknown"]
 				cpt = cpt+1
 
 
-			if (op!= ["Erreur, option non reconnue", "Uknown"] or cpt==1):#gestion de plusieurs octets d option inconnue
+			if (op!= ["Erreur, option non reconnue {}".format(typ), "Unknown"] or cpt==1):#gestion de plusieurs octets d option inconnue
 				if (op!= "Erreur, option non reconnue"):
 					cpt = 0
 				res.append(op)
+	#print(res)
 
 	if (mod==0):
-		return res, LongOp*2
+		return res
+	return ListOpDHCPEnText(res)
 
-	return ListOpDHCPEnText(res), LongOp*2
 
-
-Fichier, tab = TextCleanerTrame("trame.txt")
-listTrame, tab= creerTabTrame(Fichier,tab)
+#Fichier, tab = TextCleanerTrame("trame.txt")
+#listTrame, tab= creerTabTrame(Fichier,tab)
 #print(listTrame)
 #fichier, tab = TextCleanerTrame("test 2.txt")
 #fichier = creerTabTrame(fichier, tab)

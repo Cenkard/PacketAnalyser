@@ -24,7 +24,7 @@ User Datagram Protocol :
 	Length : 280	(0x0118)
 	Checksum : 0x591f [validation disabled]
 Dynamic Host Configuration Protocol
-	Message type: DHCP Discover (1)
+	Message type: Message type: Boot Request (1)
 	Hardware type: Ethernet (10Mb) (0x01)
 	Hardware address length: 6
 	Hops: 0
@@ -40,7 +40,26 @@ Dynamic Host Configuration Protocol
 	Server host name not given
 	Boot file name not given
 	Magic Cookie: DHCP
-	Options a venir
+	Option: (53) DHCP Message Type
+		Length: 1
+		DHCP: Discover (1)
+	Option: (61) Client-identifier
+		Length: 7
+		Hardware type: Ethernet (10Mb) (0x01)
+		Client-identifier: 
+	Option: (50) Requested IP Address
+		Length: 1
+		Requested IP Address: 0.0.0.0
+	Option: (55) Parameter Request List
+		Length: 4
+		Parameter Request List Item: (1) SubnetMask
+		Parameter Request List Item: (3) Router
+		Parameter Request List Item: (6) DomainServer
+		Parameter Request List Item: (42) NTPServers
+	Option: (255) End
+		Option End: 255
+	Padding: 00000000000000
+
 
 
 #########	TRAME 2 #########
@@ -69,7 +88,7 @@ User Datagram Protocol :
 	Length : 308	(0x0134)
 	Checksum : 0x2233 [validation disabled]
 Dynamic Host Configuration Protocol
-	Message type: DHCP Offer (2)
+	Message type: Message type: Boot Reply (2)
 	Hardware type: Ethernet (10Mb) (0x01)
 	Hardware address length: 6
 	Hops: 0
@@ -85,7 +104,28 @@ Dynamic Host Configuration Protocol
 	Server host name not given
 	Boot file name not given
 	Magic Cookie: DHCP
-	Options a venir
+	Option: (53) DHCP Message Type
+		Length: 1
+		DHCP: Offer (2)
+	Option: (1) Subnet Mask (255.255.255.0)
+		Length: 4
+		Subnet Mask: 255.255.255.0
+	Option: (58) Renewal Time Value
+		Length: 4
+		Renewal Time Value: (1800) seconds
+	Option: (59) Rebinding Time Value
+		Length: 4
+		Rebinding Time Value: (3150) seconds
+	Option: (51) IP Address Lease Time
+		Length: 4
+		IP Address Lease Time: (3600) seconds
+	Option: (54) DHCP Server Identifier
+		Length: 4
+		DHCP Server Identifier: 192.168.0.1
+	Option: (255) End
+		Option End: 255
+	Padding: 0000000000000000000000000000000000000000000000000000
+
 
 
 #########	TRAME 3 #########
@@ -114,7 +154,7 @@ User Datagram Protocol :
 	Length : 280	(0x0118)
 	Checksum : 0x9fbd [validation disabled]
 Dynamic Host Configuration Protocol
-	Message type: DHCP Discover (1)
+	Message type: Message type: Boot Request (1)
 	Hardware type: Ethernet (10Mb) (0x01)
 	Hardware address length: 6
 	Hops: 0
@@ -130,7 +170,29 @@ Dynamic Host Configuration Protocol
 	Server host name not given
 	Boot file name not given
 	Magic Cookie: DHCP
-	Options a venir
+	Option: (53) DHCP Message Type
+		Length: 1
+		DHCP: Request (3)
+	Option: (61) Client-identifier
+		Length: 7
+		Hardware type: Ethernet (10Mb) (0x01)
+		Client-identifier: 
+	Option: (50) Requested IP Address
+		Length: 1
+		Requested IP Address: 192.168.0.10
+	Option: (54) DHCP Server Identifier
+		Length: 4
+		DHCP Server Identifier: 192.168.0.1
+	Option: (55) Parameter Request List
+		Length: 4
+		Parameter Request List Item: (1) SubnetMask
+		Parameter Request List Item: (3) Router
+		Parameter Request List Item: (6) DomainServer
+		Parameter Request List Item: (42) NTPServers
+	Option: (255) End
+		Option End: 255
+	Padding: 00
+
 
 
 #########	TRAME 4 #########
@@ -159,7 +221,7 @@ User Datagram Protocol :
 	Length : 308	(0x0134)
 	Checksum : 0xdfdb [validation disabled]
 Dynamic Host Configuration Protocol
-	Message type: DHCP Offer (2)
+	Message type: Message type: Boot Reply (2)
 	Hardware type: Ethernet (10Mb) (0x01)
 	Hardware address length: 6
 	Hops: 0
@@ -175,6 +237,27 @@ Dynamic Host Configuration Protocol
 	Server host name not given
 	Boot file name not given
 	Magic Cookie: DHCP
-	Options a venir
+	Option: (53) DHCP Message Type
+		Length: 1
+		DHCP: Inform (8)
+	Option: (58) Renewal Time Value
+		Length: 4
+		Renewal Time Value: (1800) seconds
+	Option: (59) Rebinding Time Value
+		Length: 4
+		Rebinding Time Value: (3150) seconds
+	Option: (51) IP Address Lease Time
+		Length: 4
+		IP Address Lease Time: (3600) seconds
+	Option: (54) DHCP Server Identifier
+		Length: 4
+		DHCP Server Identifier: 192.168.0.1
+	Option: (1) Subnet Mask (255.255.255.0)
+		Length: 4
+		Subnet Mask: 255.255.255.0
+	Option: (255) End
+		Option End: 255
+	Padding: 0000000000000000000000000000000000000000000000000000
+
 
 

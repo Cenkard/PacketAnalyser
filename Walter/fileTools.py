@@ -11,8 +11,6 @@ def afficherTrameTease(trame):
 
 def afficherTrameDetail(listTrame): #-----------------------------modifie options IP et ajout dhcp
 	#ClearFicherTrame()
-	with open ("sdfasdfdfda", "w") as f2:
-		f2.write("bla")
 	with open("Trame_File", "w") as f:
 		for trame in listTrame:
 			f.write("#########	TRAME "+str(trame.id)+" #########\n")
@@ -138,7 +136,7 @@ def afficherTrameDetail(listTrame): #-----------------------------modifie option
 						f.write(ServerHostName(dataIP.data.serverName)+"\n")#retourne le nom selon s'il existe ou pas
 						f.write(BootFileName(dataIP.data.bootFileName)+"\n") #retourne le nom du bootfile selon s'il est donne ou pas
 						f.write("\tMagic Cookie: "+MagicCookie(dataIP.data.magicCookie)+"\n")
-						f.write(optionDHCP(dataIP.data.options)+"\n")
+						f.write(optionDHCP(dataIP.data.options, 1)+"\n")
 
 
 						
