@@ -163,11 +163,12 @@ def creerTabTrame(fichier,tab): #recupere les trames valides sous forme de strin
 
 	#Gestion de la derniere ligne de chaque trame
 	l = len(tabTrame)
+	tabTrame2 = []
 	for i in range(l):
 		longueurTrameChiffre = 28+ConvHexDec(tabTrame[i][32:36])*2
 		vraiLongueurTrameChiffre = len(tabTrame[i][:-2])
 		if (vraiLongueurTrameChiffre>=longueurTrameChiffre):
-			tabTrame[i] = tabTrame[i][:longueurTrameChiffre]
+			tabTrame2.append(tabTrame[i][:longueurTrameChiffre])
 		else:
 			trame = tabTrame[i]
 			k = len(trame)-1
@@ -175,10 +176,7 @@ def creerTabTrame(fichier,tab): #recupere les trames valides sous forme de strin
 				k=k-1
 			erreur = "Erreur trame ({}), ligne ({})".format(i, tabTrame[i][k+1:])
 			tab2[i].append(erreur)
-			tabTrame.pop(i)
-			#print(erreur)
-			
-	return tabTrame
+	return tabTrame2
 
 def creerTrame(fichier,tab):	#cree l'entete ethernet en fonction du tableau de trames valides, NE PAS OUBLIER DE AJOUTER DECALAGE OPTIONS IP #------------------------------------  options + decalage
 	cpt=0
