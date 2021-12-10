@@ -4,7 +4,7 @@ from pa import *
 Fichier repertoriant les differentes classes utiles pour la conception des trames
 """
 
-class Trame:	#Classe Trame contenant l'entete Eth le paquet dataIP
+class Trame:	#Classe Trame contenant les champs d une trame Ethernet, le champs data etant IP
 	def __init__(self,id,destination=None,source=None,typ=None,data=None):
 		self.id = id
 		self.type="Ethernet"
@@ -21,7 +21,7 @@ class Trame:	#Classe Trame contenant l'entete Eth le paquet dataIP
 		self.typ = typ
 		self.data = data
 
-class DataIP: 	#Classe DataIP contenant l'entete IP et le paquet udp / icmp
+class DataIP: 	#Classe DataIP contenant les champs d'un paquet IP et le champs data etant le segment UDP
 	def __init__(self,version=None,IHL=None,TOS=None,totalLength=None,identification=None,flags=None,fragOffset=None,TTL=None,
 				protocol=None,headerChecksum=None,destinationIP=None,sourceIP=None,options=None,data=None):
 		self.type="Datagrame IP"
@@ -53,7 +53,7 @@ class DataIP: 	#Classe DataIP contenant l'entete IP et le paquet udp / icmp
 
 		self.data = data	
 
-class ICMP:	#Classe ICMP contenant l'entete ICMP et le paquet icmp 
+class ICMP:	#Classe ICMP contenant l'entete ICMP
 	def __init__(self,checksum=None,identifier=None,sequenceNumber=None,optionalData=None):
 		self.type="ICMP"
 		self.checksum
@@ -61,7 +61,7 @@ class ICMP:	#Classe ICMP contenant l'entete ICMP et le paquet icmp
 		self.sequenceNumber
 		self.optionalData	
 
-class UDP:		#Classe UDP contenant l'entete UDP et le paquet dns / dhcp 
+class UDP:		#Classe UDP contenant les champs d'un segment UDP et le champs data etant ou DHCP ou DNS
 	def __init__(self,sourcePortNum=None,destPortNum=None,length=None,checksum=None,data=None):
 		self.type = "UDP"
 		self.sourcePortNum = sourcePortNum
@@ -70,7 +70,7 @@ class UDP:		#Classe UDP contenant l'entete UDP et le paquet dns / dhcp
 		self.checksum = checksum
 		self.data = data
 
-class DNS:		#Classe DNS contenant l'entete DNS et les diffrents paquet DNS
+class DNS:		#Classe DNS contenant l'entete DNS et les diffrents champs data de DNS
 	def __init__(self,transID=None,flags=None,questions=None,answerRRs=None,authRRs=None,addRRs=None,query=None,answers=None,authority=None,addition=None):
 		self.type="DNS"
 		self.transID = transID
@@ -86,7 +86,7 @@ class DNS:		#Classe DNS contenant l'entete DNS et les diffrents paquet DNS
 		self.authority = authority
 		self.addition = addition
 
-class dnsQueries:		#Classe dnsQueries contenant le paquet queries
+class dnsQueries:		#Classe dnsQueries contenant les champs de la section queries
 	def __init__(self,name=None,ascii_name="",typeQ=None,classe=None):
 		self.dnsType = "(query)"
 		self.name = name
@@ -99,7 +99,7 @@ class dnsQueries:		#Classe dnsQueries contenant le paquet queries
 
 		self.classe = classe
 
-class dnsAnswers:		#Classe dnsAnswers propre au paquet Answer/Authority/Addition qui ont la meme structure
+class dnsAnswers:		#Classe dnsAnswers propre au paquet Answer/Authority/Addition qui ont la meme structure donc on les representent tous par la meme classe
 	def __init__(self,name,typeA,classe,ttl=None,rdata_length=None,data=None,ascii_name="None",ascii_data="None"):
 		self.dnsType = "(response)"
 		self.name = name
@@ -116,7 +116,7 @@ class dnsAnswers:		#Classe dnsAnswers propre au paquet Answer/Authority/Addition
 			else:
 				self.data = data
 		
-class DHCP:				#Classe DHCP contenant le paquet dhcp et ses options
+class DHCP:				#Classe DHCP contenant les champs de DHCP et les options
 	def __init__(self,bootRq,hardType,hardAddLength,hops,transID,secColl,bootpFlags,clientIP,yourIP,serverIP,gatewayIP, clientMAC, serverName,bootFileName,magicCookie,options):
 		self.type="DHCP"
 		self.bootRq = bootRq

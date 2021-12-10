@@ -4,74 +4,69 @@ from outils import *
 
 #----------------------------------------------Convertisseurs
 
-def toAscii(data):
+def toAscii(data): #convertisseur de hex en ascii
 	i=0
-	ascii_data=""
+	ascii_data="" #notre reseultat final
 	while(i+2<=len(data)):
-		if(data[i:i+2] in ["01","02","03","04","05","06","07","08","09","0A","0a","0B","0b","0C","0c","0D","0d","0E","0e","0F","0f"]):
+		if(data[i:i+2] in ["01","02","03","04","05","06","07","08","09","0A","0a","0B","0b","0C","0c","0D","0d","0E","0e","0F","0f"]): #liste qui permet de reconnaitre un point a condition qu'on ne soit pas au debut de data (deux premiers chiffres hexadecimaux)
 			if(i<2):
 				pass;
 			else:
 				ascii_data = ascii_data+"."
-		elif((ConvHexDec(data[i:i+2])>=65 and ConvHexDec(data[i:i+2])<=122) or (ConvHexDec(data[i:i+2])>=48 and ConvHexDec(data[i:i+2])<=57)):
-			ascii_data = ascii_data + bytearray.fromhex(data[i:i+2]).decode()
+		elif((ConvHexDec(data[i:i+2])>=65 and ConvHexDec(data[i:i+2])<=122) or (ConvHexDec(data[i:i+2])>=48 and ConvHexDec(data[i:i+2])<=57)): #si c'est pas un point 
+			ascii_data = ascii_data + bytearray.fromhex(data[i:i+2]).decode() #on le decode directement de hex a ascii
 		i=i+2
 	return ascii_data
 
-def ConvHexDec(nb):
-	nombre = SupprimerEspace(nb)
+def ConvHexDec(nb): #convertit un nombre hexadecimal en decimal
+	nombre = SupprimerEspace(nb) #on supprime les espaces inutiles
 
 	l= len(nombre)
 	res = 0
-	for i in range(0, l):
-		n = ord(nombre[i].capitalize())
-		if (n>=48 and n<=57):
-			n = n-48
-		elif (n>=65 and n<=70): 
-			n = n-55
+	for i in range(0, l): #on itere sur les chiffres hex
+		n = ord(nombre[i].capitalize()) #on capitalise tout pour etre compatible avec majiscule et miniscule 
+		if (n>=48 and n<=57): #si c'est un nombre 
+			n = n-48 #on le transforme en nombre int en faisant -48 (48 est la valeur decimal pour coder le string du nombre 0, 49 pour code 1 etc...)
+		elif (n>=65 and n<=70):  #si c'est une lettre (de A a F)
+			n = n-55 #on fait -55 car A==65, pour retrouver 10 de meme, F=70, donc 70-55=15
 		else:
-			raise ValueError
-		res= res + n*(16**(l-1-i))
-	return res
+			raise ValueError #sinon il y a une erreur
+		res= res + n*(16**(l-1-i)) #on multiplie le chiffre n hexadecimal convertit en decimal par son poids (son coef 16)
+	return res 
 
 
-def ConvBinDec(nombre):
-	l = len(nombre)
+def ConvBinDec(nombre): #convertit un nombre binaire en decimal
+	l = len(nombre) 
 	res =0
-	for i in range(0, l):
-		n = ord(nombre[i].capitalize())-48;
-		if (n!=0 and n!=1):
-			raise ValueError
+	for i in range(0, l): #on itere sur les chiffres binaires
+		n = ord(nombre[i].capitalize())-48; #Capitalisation non necessaire, on fait -48 pour retrouver nombre decimal 0 ou 1 
+		if (n!=0 and n!=1): #on peut que trouver 0 ou 1
+			raise ValueError #sinon il y a une erreur
 		else:
-			res = res + n*(2**(l-1-i))
+			res = res + n*(2**(l-1-i)) #on multiplie le nombre binaire 0 ou 1 par son poids (coef 2)
 	return res
 
 
-def ConvHexBin(nombre):
-	d = {'0':'0000', '1':'0001', '2':'0010', '3':'0011', '4':'0100', '5':'0101', '6':'0110', '7':'0111', '8':'1000', '9':'1001', 'A':'1010', 'B':'1011', 'C':'1100', 'D':'1101', 'E':'1110', 'F':'1111'}
+def ConvHexBin(nombre): #convertit un nombre hexadecimal en binaire
+	d = {'0':'0000', '1':'0001', '2':'0010', '3':'0011', '4':'0100', '5':'0101', '6':'0110', '7':'0111', '8':'1000', '9':'1001', 'A':'1010', 'B':'1011', 'C':'1100', 'D':'1101', 'E':'1110', 'F':'1111'} #liste qui defini chiffres de bases en binaires
 	l = len(nombre)
 	res = ''
-	for i in range(0, l):
-		n = nombre[i].capitalize()
-		if (not(ord(n)>=48 and ord(n)<=57) and not(ord(n)>=65 and ord(n)<=70)):
-			raise ValueError
-		res = res + d[n]
-
-	i=0#eleminer les 0 du debut
-	if (res!=''):
-		while (res[i]=='0' and i<l):
-			i=i+1;
+	for i in range(0, l): #pour chaque hex
+		n = nombre[i].capitalize() #compatibilite capital et miniscule
+		if (not(ord(n)>=48 and ord(n)<=57) and not(ord(n)>=65 and ord(n)<=70)): #si ce n'est pas un chiffre hex
+			raise ValueError #erreur
+		res = res + d[n] #sinon on ajoute version binaire au resultat
 	return res
 
-def ConvDecHex(nombre):
-	dic = {0:"0", 1:"1",2:"2",3:"3",4:"4",5:"5",6:"6",7:"7",8:"8",9:"9",10:"A",11:"B",12:"C",13:"D",14:"E",15:"F"}
+def ConvDecHex(nombre):  #convertit un nombre decimal en hex
+	dic = {0:"0", 1:"1",2:"2",3:"3",4:"4",5:"5",6:"6",7:"7",8:"8",9:"9",10:"A",11:"B",12:"C",13:"D",14:"E",15:"F"} #definition de chiffres de base
 	lim= 0
 	res = ""
-	#determiner lim, tel que lim est le plus grand possible et nombre/(d^lim)>=1
+	#determiner lim, tel que lim est le plus grand possible et nombre/(d^lim)>=1. En fait cherche le plus plus grand coef de 16 dans notre nombre pour savoir coder le nombre hex sur combien de chiffre
 	while (nombre/(16**lim)>=1):
 		lim= lim+1
 	lim = lim-1
-	while (nombre>0):
+	while (nombre>0): #coder notre par division sucessives du plus gros au plus petit coef de 16
 		ch = nombre / (16**lim)
 		nombre = nombre - ch*(16**lim)
 		res = res+dic[ch]
@@ -80,28 +75,29 @@ def ConvDecHex(nombre):
 
 #---------------------------------------------- Netoyage texte 
 
-def FormatIndiceOffset0(FichierTemp, i):#prend en rentrer Fichier et retourne offset nul suivante
+def FormatIndiceOffset0(FichierTemp, i): #prend en rentrer Fichier et ligne i dans le fichier 
+	#Elle cherche le debut d'une trame: retourne le couple (offset, i) ou offset est l'offset nul indiquant le format des offset de cette trame et i est la ligne ou se trouve cet offset
 	l = len(FichierTemp)
-	while (i<l):
-		ligne = FichierTemp[i]
+	while (i<l): #tant qu' on a pas depasser la taille du fichier
+		ligne = FichierTemp[i] #on lit la ligne i
 		try:
-			if (ligne[0:3]=="000"):
+			if (ligne[0:3]=="000"): #d'apres l'enonce du projet, l'offset est code sur plus de 2 chiffres donc au minimum sur 3 chiffres
 				j=3
-				while(ligne[j]=="0"):
+				while(ligne[j]=="0"): #on determine longueur de offset nul
 					j=j+1
 				if (ligne[j]==" "):
-					return ligne[:j], i
+					return ligne[:j], i #on retourne couple
 				i=i+1
 			else:
 				i=i+1
-		except IndexError as e:
+		except IndexError as e: #gestion erreur en cas de index our of rance, on continue a chercher
 			print(str(e)+" FormatIndiceOffset")
 			i=i+1
 	return -1, -1
 
 
 
-def SupprimerEspace(element):
+def SupprimerEspace(element): #fonction qui elimine espaces dans un string
 	res = ""
 	for el in element:
 		if (el!=" "):
@@ -109,7 +105,7 @@ def SupprimerEspace(element):
 	return res
 
 
-def DerLigne(DerLigne): #renvoie DerLigne sans texte
+def DerLigne(DerLigne): #renvoie la derniere ligne sans autres elements que les nombre et les chiffres hexadecimaux, des qu'on trouve autre chose on s'arrette
 	LigneValide= -1
 	DL = ""
 	
@@ -124,27 +120,28 @@ def DerLigne(DerLigne): #renvoie DerLigne sans texte
 
 	#prendre les octets hexadecimaux qui peuvent etre texte ou pas
 	for j in range(i+1, l):
-		n = ord(DerLigne[j].capitalize())
-		if ((n>=48 and n<=57) or (n>=65 and n<=70)):
+		n = ord(DerLigne[j].capitalize()) #insensibilite capital/minscule
+		if ((n>=48 and n<=57) or (n>=65 and n<=70)): #par defintion du chiffre hex
 			DL = DL+DerLigne[j]
 		elif (DerLigne[i]!=" "):
 			return DL
 	return DL
 
-def FauxFormatOffset(ligne, TailleOffset): #renvoit si le format d'un offset et faux, sinon renvoit l'offset valide et sa version decimale
+def FauxFormatOffset(ligne, TailleOffset): #Fonction qui prend une ligne du fichier et la taille de l'offset de la trame associe a cette ligne (celui de l'offset nul)
+	#renvoit si le format d'un offset est faux, sinon renvoit l'offset et sa version decimale
 	offset = ""
 	i = 0
-	while (ligne[i]!=" " and ligne[i]!="\n"):
+	while (ligne[i]!=" " and ligne[i]!="\n"): #tant qu'on est dans l'offset (on  a pas rencontre d'espaces ni de \n), on prend l'offset
 		offset = offset+ligne[i]
 		i=i+1
-	if (len(offset)!= TailleOffset):
+	if (len(offset)!= TailleOffset): #il est faux si les tailles different
 		raise ValueError
-	offsetDec = ConvHexDec(offset)
-	return offset, offsetDec
+	offsetDec = ConvHexDec(offset) #si l'offset est inconvertissable en hexadecimal il est aussi incorrecte, cette fonction raise error en cas d'erreur
+	return offset, offsetDec #si l'offset est coherent on le retourne, pour verifier s il est plus grand que l'offset avant lui, pour le reconnaitre comme un vrai offset
 
-def LigneSansTexteEvid(ligne): #enleve tout le texte qui n'est pas sous la forme d'octets et envoie ligne sans espaces hormis celui entre offset et octets
-	CptChiffreCons= 0
-	CptEspaceCons = 0
+def LigneSansTexteEvid(ligne): #Pour une ligne donnee: enleve tout le texte qui n'est pas sous la forme d'octets (n'enleve pas le texte competement) et envoie ligne sans espaces hormis celui entre offset et octets
+	CptChiffreCons= 0 #compre le nombre de chiffres consecutives
+	CptEspaceCons = 0 #compte le nombre d'espace consecutifs
 	i = 0
 	res = ""
 	l = len(ligne)
@@ -162,82 +159,84 @@ def LigneSansTexteEvid(ligne): #enleve tout le texte qui n'est pas sous la forme
 		i=i+1
 
 	#ajouter octets 
-	while ((i < l) and CptEspaceCons<2 and CptChiffreCons<3):
-		if (ligne[i] == " "):
-			if (CptChiffreCons==1):
-				return res[:-1]
-			CptChiffreCons = 0
-			CptEspaceCons = CptEspaceCons+1
-		else:
-			CptEspaceCons = 0
-			if (CptChiffreCons<2):
-				res = res + ligne[i]
-			CptChiffreCons = CptChiffreCons +1
+	while ((i < l) and CptEspaceCons<2 and CptChiffreCons<3): #tant qu'on est pas a la fin de la ligne, et tant que le nombre d'espace consecutifs est < 2, et le nombre de chiffres consecutifs <3
+		if (ligne[i] == " "): #si on a un espace 
+			if (CptChiffreCons==1): #Si on a compter que un chiffre hexadecimal avant cet espace, 
+				return res[:-1] #on retourne la ligne jusqu'a avant ce chiffre hexadecimal, car on aurait du compter 2 chiffres hexadecimaux (condition un octet delimite par un espace)
+			CptChiffreCons = 0 #sinon on continue a chercher donc on reset le compteur de chiffres consecutifs
+			CptEspaceCons = CptEspaceCons+1 #on augmente le nombre d espace consecutifs de 1 car on a rencontre un espace
+		else: #si on a un chiffre
+			CptEspaceCons = 0 #on reset notre compteur de espaces consecutifs
+			if (CptChiffreCons<2): #si on a rencontre moins de 2 chiffres jusqu a present
+				res = res + ligne[i] #on ajoute le chiffre qu'on vient de rencontrer
+			CptChiffreCons = CptChiffreCons +1 #on augmente le compteur de chiffres consecutifs rencontre
 		i=i+1
 	if (CptChiffreCons==3): #a effacer si besoin
 		return res[:-2]
 	return res
 
-def DebutTrame(ligne): #PEUT CHANCHER EN FONCTION REPONSE DU PROF (est-ce que l'offset est fixe dans toutes les trames?)
-	if (ligne[0]=="0" and ligne[1]=="0"):
-		i=2
-		while (ligne[i]!=" "):
-			if (ligne[i]!="0"):
+def DebutTrame(ligne): #prend en entree une ligne du fichier
+	#retourne si cette ligne commence par un offset nul, indiquant ainsi qu'on est au debut d'une trame
+	if (ligne[0]=="0" and ligne[1]=="0" and ligne[2]=="0"): #offset nul commence par trois 0 au minimum d'apres enonce projet
+		i=3
+		while (ligne[i]!=" "): #si c'est pas un espace 
+			if (ligne[i]!="0"): #alors ca ne peut pas etre different de 0 pour que ca soit un offset valide
 				return False
 			i = i+1
 	else:
-		return False
-	return True
+		return False 
+	return True #si on continu a trouver des 0 jusqu'a l'espace, c'est un offset valide
 
 
-def VerifierOffset(FichierTemp, j, TailleOffset): #0 => nouvelle trame ; 1-> ligne valide ; -1 =>invalide
+def VerifierOffset(FichierTemp, j, TailleOffset): #fonction qui prend un fichier (une listes des lignes du fichier), l'indice d'une ligne j et la taille de l'offset associe a cette ligne j
+	#Fonction retourne un triplet (n, i, ligne): si [n=0 => nouvelle trame ; 1-> ligne j valide ; -1 =>ligne j invalide] ; i est la nouvelle ligne de la trame debutant par un offset valide ;  ligne et la ligne j debarassee du tout texte
 	lf = len(FichierTemp)
 
+	#on initialise variables utiles
 	ligne = FichierTemp[j]
-	LigneAVerif =  LigneSansTexteEvid(ligne)
+	LigneAVerif =  LigneSansTexteEvid(ligne) #on se debarasse du texte evident (mais en garde texte sous forme d'octets)
 	ll = (len(LigneAVerif) - TailleOffset -1)/2 #on divise par deux parce que la taille est en nombrer d octets = 2 chiffres, on fait -1 pout l'espace laisse entre l offset et le message
-	OffsetPres = LigneAVerif[:TailleOffset]
-	OffsetPresDec = ConvHexDec(OffsetPres)
+	OffsetPres = LigneAVerif[:TailleOffset] #on prend offset de la ligne presente
+	OffsetPresDec = ConvHexDec(OffsetPres) #on transforme cet offset nombre hex (pour ensuite le comparer a l'offset suivant afin de determiner un offset suivant valide)
 
-	#chercher offset valide
+	#chercher offset suivant valide
 	i = j+1
-	while (i < lf):
+	while (i < lf): #tant qu'on a pas attaint la fin du fichier
 		LigneValide = 1
 
 		try:
-			if (DebutTrame(FichierTemp[i])):
+			if (DebutTrame(FichierTemp[i])): #si on detecte une nouvelle trame, on retourne 0 pour l'indiquer, l'indice i de cette nouvelle trame et LigneAVerif qui est la derniere ligne de la trame presente
 				return 0, i, LigneAVerif
-			Offset, OffsetDec = FauxFormatOffset(FichierTemp[i], TailleOffset) #si faux format raise ValueError, sinon retourne offset et sa valeur en decimal
+			Offset, OffsetDec = FauxFormatOffset(FichierTemp[i], TailleOffset) #si faux format raise ValueError, sinon on recupere offset et sa valeur en decimal
 
-			if (OffsetDec>OffsetPresDec): #On a trouve un bon offset, on peut verifier LigneAVerif
-				LigneValide = -1
-				longueur = OffsetDec-OffsetPresDec
-				if (ll >= longueur):
+			if (OffsetDec>OffsetPresDec): #On a trouve un bon offset (qui est superieur a l'offset present), on peut verifier LigneAVerif (la ligne presente)
+				LigneValide = -1 #on part du principe qu'elle est invalide
+				longueur = OffsetDec-OffsetPresDec #on determine sa longueur en theorie en fonction de l'offset present (de la ligne presente) et l'offset suivant valide trouve
+				if (ll >= longueur): #si la ligne presente est de longueur superieur, on efface les ocetets textes additionnels
 					LigneAVerif = LigneAVerif[:TailleOffset+longueur*2+1] #longueur*2 car taille est en nombrer d'octets = 2 chiffres, +1 pour compter espace entre offset et message
-					LigneValide = ConvHexDec(SupprimerEspace(LigneAVerif)) # verifie si c'est uniquement des octets (sans texte)
-					return 1, i, LigneAVerif
-				else:
-					return -1, i, LigneAVerif
-			i = i+1
+					LigneValide = ConvHexDec(SupprimerEspace(LigneAVerif)) # verifie si c'est uniquement des octets hexadecimaux (sans texte)
+					return 1, i, LigneAVerif #si tout est verifie on retourne qu'elle est valide (1), l'indice i de la prochaine ligne a verifier avec l'offset valide et on retourne Ligne presente debarasse du texte
+				else: #si longueur ligne presente est inferieure a celle precise 
+					return -1, i, LigneAVerif #elle est invalide
+			i = i+1 #si pas d'offset valide trouve encore on continue a chercher 
 
 
-		except (ValueError, IndexError) as e:
-			if (LigneValide==-1):
-				return -1, i, LigneAVerif
-			i=i+1
-			#if i<lf and not(DebutTrame(FichierTemp[i])):
-			#	print("Erreur verifier offset ligne "+str(i))
+		except (ValueError, IndexError) as e: 
+			if (LigneValide==-1): #si la conversion en hex de la ligne presente etait un echec, alors qu'on a trouve un offset suivant correcte, ca signifie que la ligne est incomplete
+				return -1, i, LigneAVerif #retour ligne invalide
+			i=i+1 #sinon exception causee par offset invalide ce qui est normal on continue a chercher
 
-	return 0, i, LigneAVerif
+	return 0, i, LigneAVerif #si on atteint fin fichier, on atteint fin de fichier on retourne quand meme derniere ligne de la derniere trame
 
 
-def TextCleanerTrame(NomFichier): #Enleve tout texte des trames et renovoie liste de trames
+def TextCleanerTrame(NomFichier): #Prend en entre un fichier contennat des trames a lire
+	#renvoit couple (Fichier, TramesValides): Fichier represente un tableau de trames sans texte et TramesValides 
 	FichierTemp=[]
 	Fichier = []
 	TramesValides = []
 
 	#Lire toutes les lignes du fichier
-	with open (NomFichier, "r") as f:
+	with open (NomFichier, "r") as f: #transforme fichier en liste de lignes
 		FichierTemp = f.readlines()
 
 	l = len(FichierTemp)	
@@ -259,79 +258,38 @@ def TextCleanerTrame(NomFichier): #Enleve tout texte des trames et renovoie list
 		#ajout trame
 		while (verif!=0):
 			trame.append(res)
-			if (verif == -1):
+			if (verif == -1): #si ligne invalide, sauvegarder ligne erreur
 				TrameValide.append("Erreur dans trame ({}), verifier ligne : ".format(len(Fichier)+1)+str(tempi+1))
 
 			tempi= i
 
-			verif, i, res = VerifierOffset(FichierTemp, i, TailleOffset)
+			verif, i, res = VerifierOffset(FichierTemp, i, TailleOffset) #verifie ligne presente et trouver ligne suivante (ayant offset valide)
 
 		#Gestion de la derniere ligne de la trame
 		res = DerLigne(res)
-		trame.append(res+" {}".format(tempi+1))
-		Fichier.append(trame)
+		trame.append(res+" {}".format(tempi+1)) #on rajoute numero de la ligne de la derniere ligne de cette trame car on va la perdre apres (on va l'enlever plus tard)
+		Fichier.append(trame) #on ajoute trame
 
 		#indiquer si trame est valide
-		TramesValides.append(TrameValide)
+		TramesValides.append(TrameValide) #TrameValides contient une liste d'erreurs par trame, si cette liste est vide, la trame est valide sinon elle est incorrecte
 
 	return Fichier, TramesValides
 
-def EnleverOffset(Fichier):
+def EnleverOffset(Fichier): #prend en entre un fichier (liste de lignes du fichier), lignes valides et sans textes
+	#Retourne les lignes sans offset
 	l = len(Fichier)
-	for i in range(l):
+	for i in range(l): #pour chaque trame
 		ll = len(Fichier[i])
 		TailleOffset = 0
 		k=0
 
-		while (Fichier[i][0][k]!=" "):
+		while (Fichier[i][0][k]!=" "): #determiner taille offset de la trame presente
 			TailleOffset = TailleOffset+1
-			k=k+1
-		for j in range(ll):
+			k=k+1 
+		for j in range(ll):#pour chaque ligne enleve offset
 			Fichier[i][j] = Fichier[i][j][TailleOffset+1:]
 	return Fichier
 
-
-def creerTabTrame(fichier,tab): #recupere les trames valides sous forme de string contenant tous les hexadecimaux a la suite
-	i=0
-	j=0
-	trameValide = []
-	tabTrame = []
-	tab2 = tab
-	while(i<len(tab)):
-		if(tab[i]==[]):
-			trameValide.append(fichier[i])
-		i+=1
-
-	for trame in trameValide:
-		tabTrame.append("")
-		for ligne in trame:
-			i=0
-			ligneCopy = ""
-			while(ligne[i]!=' '):
-				i=i+1
-			i=i+1
-			ligneCopy = ''.join(str(item) for item in ligne[i:])
-			tabTrame[j] = tabTrame[j]+ligneCopy
-		j=j+1
-
-	#Gestion de la derniere ligne de chaque trame
-	#Gestion de la derniere ligne de chaque trame
-	l = len(tabTrame)
-	tabTrame2 = []
-	for i in range(l):
-		longueurTrameChiffre = 28+ConvHexDec(tabTrame[i][32:36])*2
-		vraiLongueurTrameChiffre = len(tabTrame[i][:-2])
-		if (vraiLongueurTrameChiffre>=longueurTrameChiffre):
-			tabTrame2.append(tabTrame[i][:longueurTrameChiffre])
-		else:
-			trame = tabTrame[i]
-			k = len(trame)-1
-			while (trame[k]!=" "):
-				k=k-1
-			erreur = "Erreur trame ({}), ligne ({})".format(i, tabTrame[i][k+1:])
-			tab2[i].append(erreur)
-	return tabTrame2
- 
 
 #--------------------------------------------------------------------------------------- Options IP
 def ListOpEnText(L):  #Fonction intermediaire pour le mode texte en optionIP

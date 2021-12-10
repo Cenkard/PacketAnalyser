@@ -289,17 +289,19 @@ def creerTrame(fichier,tab):	#cree l'entete ethernet en fonction du tableau de t
 	return listTrame
 
 """
-def creerTabTrame(fichier,tab): #recupere les trames valides sous forme de string contenant tous les hexadecimaux a la suite ---------------------------------- modifie gestion derniere ligne et erreurs
+def creerTabTrame(fichier,tab): #Prend en entre les trames, et un tableau indiquant validite des trames
+	#retourne tabTrame2: tableau de trames, une trame = un string d'octets sans offset. Elle verifie aussi validite de chaque trame en calculant la taille totale de chaque trame
 	i=0
 	j=0
 	trameValide = []
 	tabTrame = []
 	tab2 = tab
-	while(i<len(tab)):
+	while(i<len(tab)): #prendre les trames valides de bases (sans erreurs)
 		if(tab[i]==[]):
 			trameValide.append(fichier[i])
 		i+=1
-	for trame in trameValide:
+
+	for trame in trameValide: #transforme chque trame en un string d'octets
 		tabTrame.append("")
 		for ligne in trame:
 			i=0
@@ -311,22 +313,23 @@ def creerTabTrame(fichier,tab): #recupere les trames valides sous forme de strin
 			tabTrame[j] = tabTrame[j]+ligneCopy
 		j=j+1
 
-	#Gestion de la derniere ligne de chaque trame
+	#Gestion de la derniere ligne de chaque trame, donc verification de la taille de la trame
 	l = len(tabTrame)
 	tabTrame2 = []
-	for i in range(l):
-		longueurTrameChiffre = 28+ConvHexDec(tabTrame[i][32:36])*2
-		vraiLongueurTrameChiffre = len(tabTrame[i][:-2])
+	for i in range(l): #pour chaque trame s
+		trame = tabTrame[i]
+		k = len(trame)-1 
+		while (trame[k]!=" "): #k va contenir la fin de la trame. Car j'ai sauvegarde dans trame[k+1:] le numero de ligne de la derniere ligne de cette trame 
+			k=k-1
+		longueurTrameChiffre = 28+ConvHexDec(trame[32:36])*2 #longueur en theorie en fonction de 14 + champs total length de IP
+		vraiLongueurTrameChiffre = len(trame[:k]) #la veritable longueur de la trame, on enleve le numero de la derniere ligne a la fin, que j'ai ajoute dans la fonction TextCleanerTrame 
 		if (vraiLongueurTrameChiffre>=longueurTrameChiffre):
-			tabTrame2.append(tabTrame[i][:longueurTrameChiffre])
+			tabTrame2.append(trame[:longueurTrameChiffre])
 		else:
-			trame = tabTrame[i]
-			k = len(trame)-1
-			while (trame[k]!=" "):
-				k=k-1
-			erreur = "Erreur trame ({}), ligne ({})".format(i, tabTrame[i][k+1:])
-			tab2[i].append(erreur)
+			erreur = "Erreur trame ({}), ligne ({}), trame incomplete...".format(i, trame[k+1:]) #On renvoit derniere ligne de la trame car la trame est incomplete..
+			tab2[i].append(erreur) #ajout erreur lie a la derniere ligne ou la taille totale
 	return tabTrame2
+ 
 
 def creerTrame(fichier,tab):	#cree l'entete ethernet en fonction du tableau de trames valides, NE PAS OUBLIER DE AJOUTER DECALAGE OPTIONS IP #------------------------------------  options + decalage
 	cpt=0

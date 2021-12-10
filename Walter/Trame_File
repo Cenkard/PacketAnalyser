@@ -1,6 +1,6 @@
 --------------- TRAME 1 ----------------
 ----------------------------------------
-Paquet ethernet de ... bytes
+Paquet ethernet de 326 bytes
 
 Ethernet :
 	Destination MAC : 00:00:00:00:00:00
@@ -43,7 +43,7 @@ User Datagram Protocol :
 	Destination Port : 67 (0x0043)
 	Length : 252	(0x00fc)
 	Checksum : 0xb624 [validation disabled]
-Dynamic Host Configuration Protocol
+Dynamic Host Configuration Protocol:
 	Message type: unknown
 	Hardware type: 0xaf  [Unassigned]
 	Hardware address length: 0xb0 (176)
@@ -70,7 +70,7 @@ Dynamic Host Configuration Protocol
 
 --------------- TRAME 2 ----------------
 ----------------------------------------
-Paquet ethernet de ... bytes
+Paquet ethernet de 94 bytes
 
 Ethernet :
 	Destination MAC : 00:00:00:00:00:00
@@ -107,14 +107,13 @@ Internet Protocol Version 4 :
 			Time Stamp: 0x00000000 (0)
 			Address: - 0x00000000
 			Time Stamp: 0x00000000 (0)
-
 	Error: IP datagrame not identified...
 	IP protocol known : ICMP, UDP
 
 
 --------------- TRAME 3 ----------------
 ----------------------------------------
-Paquet ethernet de ... bytes
+Paquet ethernet de 90 bytes
 
 Ethernet :
 	Destination MAC : 00:00:00:00:00:00
@@ -151,14 +150,13 @@ Internet Protocol Version 4 :
 			Time Stamp: 0x00000000 (0)
 			Address: - 0x00000000
 			Time Stamp: 0x00000000 (0)
-
 	Error: IP datagrame not identified...
 	IP protocol known : ICMP, UDP
 
 
 --------------- TRAME 4 ----------------
 ----------------------------------------
-Paquet ethernet de ... bytes
+Paquet ethernet de 82 bytes
 
 Ethernet :
 	Destination MAC : 00:00:00:00:00:00
@@ -192,14 +190,13 @@ Internet Protocol Version 4 :
 			Source Route: 0x7b2a3504 (123.42.53.4)
 			Source Route: 0x7b340615 (123.52.6.21)
 			Destination: 0x7f000001 (127.0.0.1)
-
 	Error: IP datagrame not identified...
 	IP protocol known : ICMP, UDP
 
 
 --------------- TRAME 5 ----------------
 ----------------------------------------
-Paquet ethernet de ... bytes
+Paquet ethernet de 314 bytes
 
 Ethernet :
 	Destination MAC : ff:ff:ff:ff:ff:ff (broadcast)
@@ -226,7 +223,7 @@ User Datagram Protocol :
 	Destination Port : 67 (0x0043)
 	Length : 280	(0x0118)
 	Checksum : 0x591f [validation disabled]
-Dynamic Host Configuration Protocol
+Dynamic Host Configuration Protocol:
 	Message type: Boot Request 0x01 (1)
 	Hardware type: 0x01  [Ethernet (10Mb)]
 	Hardware address length: 0x06 (6)
@@ -267,7 +264,7 @@ Dynamic Host Configuration Protocol
 
 --------------- TRAME 6 ----------------
 ----------------------------------------
-Paquet ethernet de ... bytes
+Paquet ethernet de 342 bytes
 
 Ethernet :
 	Destination MAC : 00:0b:82:01:fc:42
@@ -294,7 +291,7 @@ User Datagram Protocol :
 	Destination Port : 68 (0x0044)
 	Length : 308	(0x0134)
 	Checksum : 0x2233 [validation disabled]
-Dynamic Host Configuration Protocol
+Dynamic Host Configuration Protocol:
 	Message type: Boot Reply 0x02 (2)
 	Hardware type: 0x01  [Ethernet (10Mb)]
 	Hardware address length: 0x06 (6)
@@ -337,7 +334,7 @@ Dynamic Host Configuration Protocol
 
 --------------- TRAME 7 ----------------
 ----------------------------------------
-Paquet ethernet de ... bytes
+Paquet ethernet de 314 bytes
 
 Ethernet :
 	Destination MAC : ff:ff:ff:ff:ff:ff (broadcast)
@@ -364,7 +361,7 @@ User Datagram Protocol :
 	Destination Port : 67 (0x0043)
 	Length : 280	(0x0118)
 	Checksum : 0x9fbd [validation disabled]
-Dynamic Host Configuration Protocol
+Dynamic Host Configuration Protocol:
 	Message type: Boot Request 0x01 (1)
 	Hardware type: 0x01  [Ethernet (10Mb)]
 	Hardware address length: 0x06 (6)
@@ -408,7 +405,7 @@ Dynamic Host Configuration Protocol
 
 --------------- TRAME 8 ----------------
 ----------------------------------------
-Paquet ethernet de ... bytes
+Paquet ethernet de 342 bytes
 
 Ethernet :
 	Destination MAC : 00:0b:82:01:fc:42
@@ -435,7 +432,7 @@ User Datagram Protocol :
 	Destination Port : 68 (0x0044)
 	Length : 308	(0x0134)
 	Checksum : 0xdfdb [validation disabled]
-Dynamic Host Configuration Protocol
+Dynamic Host Configuration Protocol:
 	Message type: Boot Reply 0x02 (2)
 	Hardware type: 0x01  [Ethernet (10Mb)]
 	Hardware address length: 0x06 (6)
@@ -478,7 +475,7 @@ Dynamic Host Configuration Protocol
 
 --------------- TRAME 9 ----------------
 ----------------------------------------
-Paquet ethernet de ... bytes
+Paquet ethernet de 80 bytes
 
 Ethernet :
 	Destination MAC : 02:1a:11:f0:c8:3b
