@@ -16,7 +16,6 @@ def enregistrerTrameDetail(Fichier):
 	listTrame = creerTrame(fichier, tab)
 	print("Les trames suivantes ont bien ete chargees !\n")
 	afficherTrameTease(listTrame)
-
 	L= []
 	for trame in listTrame:
 		res = ""
@@ -54,27 +53,10 @@ def enregistrerTrameDetail(Fichier):
 				res=res+dataEth.options #------------------------------
 
 			if(dataEth.data.type == "ICMP"):
-				dataIP = trame.data
-				res=res+"Internet Control Message Protocol :\n"
-				res=res+"\tType : "+str(ConvHexDec(dataIP.type))+" ("+ConvHexBin(dataIP.type)+")\n"
-				res=res+"\tIHL : "+(dataIP.IHL)+" ("+ConvHexBin(dataIP.IHL)+")\n"
-				res=res+"\tTotal Length : "+str(ConvHexDec(dataIP.totalLength))+"	(0x"+dataIP.totalLength+")\n"
-				res=res+"\tIdentification : 0x"+(dataIP.identification)+ " ("+str(ConvHexDec(dataIP.identification))+")\n"
-				res=res+"\tTOS : "+str(ConvHexDec(dataIP.TOS))+"	(0x"+dataIP.TOS+")\n"
-				res=res+"\tFlags : 0x"+dataIP.flags+""+str(ConvHexDec(dataIP.fragOffset))+"\n"
-				if(len(dataIP.flags)!=0):
-					res=res+"	"+str(dataIP.flags[0])+"... .... .... .... : Reserved bite\n"
-					res=res+"	."+str(dataIP.flags[1])+".. .... .... .... : Don't fragment\n"
-					res=res+"	.."+str(dataIP.flags[2])+". .... .... .... : More fragment\n"
-					
-					res=res+"	...0 "+dataIP.fragOffset+" = Fragment offset: "+str(ConvHexDec(dataIP.fragOffset))+"\n"
-				res=res+"Time to live : "+str(ConvHexDec(dataIP.TTL))+"	(0x"+dataIP.TTL+")\n"
-				res=res+"Protocol : "+dataIP.data.type+" ("+str(ConvHexDec(dataIP.protocol))+")	(Ox"+dataIP.protocol+")\n"
-				res=res+"Checksum : Ox"+dataIP.headerChecksum+" [validation disabled]\n"
-				res=res+"Destination IP : "+str(dataIP.destinationIP)+"\n"
-				res=res+"Source IP : "+str(dataIP.sourceIP)+"\n"
-
-			if(dataEth.data.type == "UDP"):
+				res=res+("Internet Control Message Protocol :\n")	
+				res=res+("\tICMP data not known\n")		
+		
+			elif(dataEth.data.type == "UDP"):
 				dataIP = dataEth.data
 				res=res+"User Datagram Protocol :\n"
 				res=res+"\tSource Port  : "+str(ConvHexDec(dataIP.sourcePortNum))+" (0x"+dataIP.sourcePortNum+")\n"
@@ -99,7 +81,7 @@ def enregistrerTrameDetail(Fichier):
 							res=res+"\t\tType : "+query.typeQ+"\n"
 							res=res+"\t\t"+query.classe+"\n"
 					if(ConvHexDec(dataUDP.answerRRs) != 0):
-						f.write("\tAnswers : ("+str(len(dataUDP.answers))+")\n")
+						res=res+("\tAnswers : ("+str(len(dataUDP.answers))+")\n")
 						for answer in dataUDP.answers:
 							res=res+"\t\tName : "+answer.name+"\n"
 							res=res+"\t\t(ASCII): "+answer.ascii_name+"\n"
@@ -173,21 +155,22 @@ def enregistrerTrameDetail(Fichier):
 
 
 		L.append((14+ConvHexDec(dataEth.totalLength), str(trame.id), res))
-	return L
+	return L, listTrame
 
 def ecrireTrameDetail(Fichier):
 	#ClearFicherTrame()
 	with open("Trame_File", "w") as f:
-		L = enregistrerTrameDetail(Fichier)
+		L, listTrame = enregistrerTrameDetail(Fichier)
 		for l, ident, el in L:
 			f.write("--------------- TRAME "+ident+" ----------------\n")
 			f.write("----------------------------------------\n")
 			f.write("Paquet ethernet de {} bytes\n\n".format(l))
 			f.write(el)
 			f.write("\n\n")
+	return listTrame
 
 def afficherTrameDetail(Fichier):
-	L = enregistrerTrameDetail(Fichier)
+	L, listTrame = enregistrerTrameDetail(Fichier)
 	for l, ident, el in L:
 		print("--------------- TRAME "+ident+" ----------------")
 		print("----------------------------------------")
@@ -195,11 +178,5 @@ def afficherTrameDetail(Fichier):
 		print(el)
 		print("\n\n")
 
-def creerArborescence():
-	pass
-
-
-#afficherTrameDetail("test.txt")
-#ecrireTrameDetail("test.txt")
-enregistrerTrameDetail("test.txt")
-
+enregistrerTrameDetail("trame.txt")
+ecrireTrameDetail("trame.txt")		

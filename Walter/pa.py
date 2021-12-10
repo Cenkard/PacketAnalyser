@@ -865,6 +865,3 @@ def optionDHCP(options, mod):
 	if (mod==0):
 		return res
 	return ListOpDHCPEnText(res)
-
-
-

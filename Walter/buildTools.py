@@ -383,7 +383,6 @@ def creerTrame(fichier,tab):	#cree l'entete ethernet en fonction du tableau de t
 	return listTrame
 
 
-
 """------- TEST NON CONCLUANTS... ---------
 def recreeTrame(trame,labelTab):
 	i=0

@@ -54,7 +54,12 @@ from fileTools import *
 window = Tk()
 window.title("Analyseur de trame")
 window.geometry("720x480")
-window.config(background='#349eeb')
+
+titre = Label(window,text="Analyse des trames",font=("Courrier", 30))
+titre.pack()
+
+frame = Frame(window)
+frame.pack()
 
 def UploadAction(event=None):
     filename = filedialog.askopenfilename()
@@ -63,19 +68,38 @@ def UploadAction(event=None):
     listTrame = creerTrame(Fichier,tab)
     afficherTrameDetail(listTrame)
 
+    label_trames = Label(frame, text="Liste des trames", font=("Courrier", 10),anchor="nw")
+    label_trames.pack()
+
     list_trames = Listbox(window,width=300)
     list_trames.pack(anchor="nw")
     for trame in listTrame:
         if(trame.data.protocol == "11"):
-            list_trames.insert(END,str(trame.id)+" : "+str(trame.data.destinationIP)+" | "+str(trame.data.sourceIP)+" | "+str(trame.data.data.type)+" | "+str(trame.data.data.data.type))
+            list_trames.insert(END,str(trame.id)+"\t\t:\t\t"+str(trame.data.destinationIP)+"\t\t|\t\t"+str(trame.data.sourceIP)+"\t\t|\t\t"+str(trame.data.data.type)+"\t\t|\t\t"+str(trame.data.data.data.type))
         else:
-            list_trames.insert(END,str(trame.id)+" : "+str(trame.data.destinationIP)+" | "+str(trame.data.sourceIP)+" | "+str(trame.data.data.type))
+            list_trames.insert(END,str(trame.id)+"\t\t:\t\t"+str(trame.data.destinationIP)+"\t\t|\t\t"+str(trame.data.sourceIP)+"\t\t|\t\t"+str(trame.data.data.type))
 
-button = Button(window, text='Open', command=UploadAction)
+Fichier, tab = TextCleanerTrame("trame.txt")
+listTrame = creerTrame(Fichier,tab)
+afficherTrameDetail(listTrame)
+
+label_trames = Label(window, text="\n\nListe des trames", font=("Courrier", 20))
+label_trames.pack(anchor="nw")
+
+list_trames = Listbox(window,width=300)
+list_trames.pack(anchor="nw")
+
+for trame in listTrame:
+    if(trame.data.protocol == "11"):
+        list_trames.insert(END,"\t"+str(trame.id)+"\t\t:\t\t"+str(trame.data.destinationIP)+"\t\t|\t\t"+str(trame.data.sourceIP)+"\t\t|\t\t"+str(trame.data.data.type)+"\t\t|\t\t"+str(trame.data.data.data.type))
+    else:
+        list_trames.insert(END,"\t"+str(trame.id)+"\t\t:\t\t"+str(trame.data.destinationIP)+"\t\t|\t\t"+str(trame.data.sourceIP)+"\t\t|\t\t"+str(trame.data.data.type))
+
+
+
+"""
+button = Button(frame, text='Open', command=UploadAction)
 button.pack()
-
-label_trames = Label(window, text="Liste des trames", font=("Courrier", 30), bg="#349eeb")
-label_trames.pack()
-
+"""
 # affichage
 window.mainloop()
