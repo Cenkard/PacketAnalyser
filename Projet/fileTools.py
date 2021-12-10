@@ -162,8 +162,9 @@ def enregistrerTrameDetail(Fichier): #entre: un fichier contenant des trames
 			res=res+"Ethernet data not identified...\n"
 			res=res+"Ethernet data type known : IPv4\n"
 
-
-		L.append((14+ConvHexDec(dataEth.totalLength), str(trame.id), res))
+		length = 14+ConvHexDec(dataEth.totalLength)
+		trame.length = length
+		L.append((length, str(trame.id), res))
 	return L,listTrame,tab_erreur
 
 def ecrireTrameDetail(Fichier): #entre: fichier de trames
@@ -191,4 +192,4 @@ def afficherTrameDetail(Fichier): #entre: fichier de trames
 		print(el)
 		print("\n\n")
 
-ecrireTrameDetail("trame.txt")		
+#ecrireTrameDetail("1trame.txt")		

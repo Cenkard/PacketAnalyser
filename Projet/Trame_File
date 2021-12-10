@@ -600,3 +600,31 @@ Dynamic Host Configuration Protocol:
 
 
 
+--------------- TRAME 11 ----------------
+----------------------------------------
+Paquet ethernet de 34 bytes
+
+Ethernet :
+	Destination MAC : 60:33:4b:13:c5:58
+	Source MAC : 02:1a:11:f0:c8:3b
+	Type : IPv4 (0x0800)
+Internet Protocol Version 4 :
+	Version : 4 (0x0100)
+	IHL : 5 (0x0101)
+	Total Length : 20	(0x0014)
+	Identification : 0x0000 (0)
+	TOS : 0	(0x00)
+	Flags : 0x0100
+		0... .... .... .... : Reserved bite
+		.1.. .... .... .... : Don't fragment
+		..0. .... .... .... : More fragment
+		...0 0000 0000 0000 = Fragment offset: 0
+	Time to live : 64	(0x40)
+	Protocol : Donnee non identifiee (0)	(Ox00)
+	Checksum : 0x6324 [validation disabled]
+	Destination IP : 192.168.43.9
+	Source IP : 192.168.43.1
+	Error: IP datagrame not identified...
+	IP protocol known : ICMP, UDP
+
+

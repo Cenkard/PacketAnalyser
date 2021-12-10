@@ -8,6 +8,7 @@ class Trame: #Classe Trame contenant les champs d une trame Ethernet, le champs 
 	def __init__(self,id,destination=None,source=None,typ=None,data=None):
 		self.id = id
 		self.type="Ethernet"
+		self.length = 0
 		if(destination!=None):
 			self.destination = destination[:2]+":"+destination[2:4]+":"+destination[4:6]+":"+destination[6:8]+":"+destination[8:10]+":"+destination[10:12]
 		else:

@@ -321,12 +321,17 @@ def creerTabTrame(fichier,tab): #Prend en entre les trames, et un tableau indiqu
 		k = len(trame)-1 
 		while (trame[k]!=" "): #k va contenir la fin de la trame. Car j'ai sauvegarde dans trame[k+1:] le numero de ligne de la derniere ligne de cette trame 
 			k=k-1
-		longueurTrameChiffre = 28+ConvHexDec(trame[32:36])*2 #longueur en theorie en fonction de 14 + champs total length de IP
+
+		try: #gestion cas ou la trame n'a pas de datagram IP
+			longueurTrameChiffre = 28+ConvHexDec(trame[32:36])*2 #longueur en theorie en fonction de 14 + champs total length de IP
+		except IndexError as e:
+			longueurTrameChiffre = 100 
+
 		vraiLongueurTrameChiffre = len(trame[:k]) #la veritable longueur de la trame, on enleve le numero de la derniere ligne a la fin, que j'ai ajoute dans la fonction TextCleanerTrame 
 		if (vraiLongueurTrameChiffre>=longueurTrameChiffre):
 			tabTrame2.append(trame[:longueurTrameChiffre])
 		else:
-			erreur = "Erreur trame ({}), ligne ({}), trame incomplete...".format(i, trame[k+1:]) #On renvoit derniere ligne de la trame car la trame est incomplete..
+			erreur = "Erreur trame ({}), ligne ({}), trame incomplete...".format(i+1, trame[k+1:]) #On renvoit derniere ligne de la trame car la trame est incomplete..
 			tab2[i].append(erreur) #ajout erreur lie a la derniere ligne ou la taille totale
 	return tabTrame2,tab2
  
@@ -368,7 +373,7 @@ def creerTrame(fichier,tab):	#cree l'entete ethernet en fonction du tableau de t
 					
 					dataUDP = creerDNS(trame[decalageIP+84:])
 				else:
-					dataUDP = noneTypeData(trame[decalageIP+84:],"Donnee UDP non identifiee")
+					dataUDP = noneTypeData(trame[decalageIP+84:],"Donnee non identifiee")
 
 				dataIP.data = dataUDP
 			else:

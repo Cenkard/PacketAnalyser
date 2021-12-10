@@ -7,6 +7,8 @@ from tkinter import ttk
 from tkinter import filedialog
 from fileTools import *
 
+TK_SILENCE_DEPRECATION=1
+
 class App:
     def __init__(self):     #initialisation de la fenetre graphique
         self.win = Tk()
@@ -54,18 +56,35 @@ class App:
 
     def UploadAction(self, event=None):
         filename = filedialog.askopenfilename()
-        print('Selected: ', filename)
+        print("\n\n\n")
+        print('Selected: '+filename)
         if(filename[-3:] != "txt"):
             self.wrongForm = Label(self.win, text="Le fichier doit etre au format .txt", font=("Courrier",20))
             self.wrongForm.pack()
         else:
+            print("\n")
             self.listTrame, self.tab_erreur = ecrireTrameDetail(filename)
+            print("\n\n")
             for el in self.tab_erreur:
-                print(el)
+                for el2 in el:
+                    print(el2)
             
             label_trames = Label(self.win, text="Liste des trames", font=("Courrier", 20),anchor="nw")
             label_trames.pack(anchor='w')
             self.showList()
+
+    def GestionProtocol(self, trame):
+        #print(trame.data.type)
+        if (trame.data.type!="Donnee non identifiee"):
+            if (trame.data.data.type!="Donnee non identifiee"):
+                if (trame.data.data.data.type!="Donnee non identifiee"):
+                    return trame.data.data.data.type
+                else:
+                    return trame.data.data.type
+            else:
+                return trame.data.type
+        return trame.type
+
 
     def showList(self):
         self.tree = ttk.Treeview(self.win, column=("c1", "c2", "c3", "c4", "c5", "c6"), show='headings')
@@ -80,11 +99,9 @@ class App:
         self.tree.heading("# 4", text="Protocol")
         self.tree.column("# 5", anchor=CENTER,width="50",stretch=YES)
         self.tree.heading("# 5", text="Length")
-        self.tree.column("# 6", anchor=CENTER,width="50",stretch=YES)
-        self.tree.heading("# 6", text="Info")
 
         for trame in self.listTrame:
-            self.tree.insert('', 'end', text=str(trame.id), values=(trame.id, trame.data.sourceIP, trame.data.destinationIP, trame.data.data.type, "trame.length", "type udp"))
+            self.tree.insert('', 'end', text=str(trame.id), values=(trame.id, trame.data.sourceIP, trame.data.destinationIP, self.GestionProtocol(trame), trame.length))
         self.tree.bind("<Button-1>",self.onClick)
 
     def analyse(self,trame):
