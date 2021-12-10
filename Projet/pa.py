@@ -295,7 +295,7 @@ def EnleverOffset(Fichier): #prend en entre un fichier (liste de lignes du fichi
 def ListOpEnText(L):  #Entre: une liste contenant options de IP
 	#Retourne les options de IP en format texte indente correctement
 	#Fonction intermediaire pour le mode texte en optionIP
-	res2= L[0]
+	res2= "\t"+L[0]
 	l = len(L)
 	for i in range(1, l):
 		res2 = res2+"\t\t"+L[i][0] #deux indentations pour noms options
@@ -303,6 +303,19 @@ def ListOpEnText(L):  #Entre: une liste contenant options de IP
 		L2 = L2[:-1] #ignorer dernier element vide
 		for el in L2:
 			res2=res2+"\t\t\t"+el+"\n" #Trois indentation pour contenus de l'options
+	return res2
+
+def ListOpEnTextInterf(L):  #Entre: une liste contenant options de IP
+	#Retourne les options de IP en format texte indente correctement
+	#Fonction intermediaire pour le mode texte en optionIP
+	res2= L[0]
+	l = len(L)
+	for i in range(1, l):
+		res2 = res2+"\t"+L[i][0] #deux indentations pour noms options
+		L2 = L[i][1].split("\n")
+		L2 = L2[:-1] #ignorer dernier element vide
+		for el in L2:
+			res2=res2+"\t\t"+el+"\n" #Trois indentation pour contenus de l'options
 	return res2
 
 def LecteurIpAdresse(trame, i):  #Entre: un string et indice i du debut de l'adress IP hexadecimal a lire dans le string
@@ -440,14 +453,14 @@ def StrictSourceRoute(trame, j): #Entre: trame et indice j du debut de l'option
 	L.append(contenu)
 	return i, L
 
-def optionIP(trameTot,mod): #prend en entree une trame et le mode de retour (mod=0 sous format de liste, mod!=0 sous format texte)
+def optionIP(trameTot,mod): #prend en entree une trame et le mode de retour (mod=0 sous format de liste, mod==2 sous format texte interface) sinon sous format text normal
 	#retourne couple (options, decalage) avec options, les options de IP sous format liste ou texte selon mode et decalage est le nombre qu'il faudra ajouter sur les indice quand on lit apres la couche IP, pour prendre en compte les options de IP et lire correctement la trame
 	cpt = 0
 	trame = trameTot[28:] #on s'occupe que de la partie IP
 	LongOp = ConvHexDec(trame[1])*4 - 20
 	finOps = 40 + LongOp*2 -1 #indice du dernier chiffre hexadecimal d'option
 	res = []
-	res.append("\tOptions: ({} bytes)\n".format(LongOp)) # L[0] = ligne de titre options, a partir de L[1] on commences les differentes options, avec e.g. L[1][0] le titre et L[1][1] le contenu
+	res.append("Options: ({} bytes)\n".format(LongOp)) # L[0] = ligne de titre options, a partir de L[1] on commences les differentes options, avec e.g. L[1][0] le titre et L[1][1] le contenu
 	if (LongOp==0): #si on a pas d'option, on re
 		return None, 0
 	else:
@@ -479,7 +492,8 @@ def optionIP(trameTot,mod): #prend en entree une trame et le mode de retour (mod
 
 	if (mod==0):
 		return res, LongOp*2
-
+	if (mod ==2):
+		return ListOpEnTextInterf(res), LongOp*2
 	return ListOpEnText(res), LongOp*2
 
 #----------------------------------------------------------------------------------------- DHCP
@@ -507,10 +521,10 @@ def hardwareDHCP(code): #entre: code hardware DHCP
 def BootpFlags(flag): #rentre: flag DHCP
 	#Sortie: flag+ (unicast ou broadcast)
 	if (flag=="0000"):
-		return "0000 (unicast)"  
+		return "0x0000 (unicast)"  
 	elif (flag=="1000"):
-		return "1000 (broadcast)"  
-	return flag+" unknown"
+		return "0x1000 (broadcast)"  
+	return "0x"+flag+" (unknown)"
 
 def LecteurMAC(clMAC, i): #rentre: string et indice i de l'adresse mac dans le string
 	#Retourne l'adresse MAC sous forme AA:BB:CC:DD:EE:FF
@@ -524,25 +538,25 @@ def LecteurMAC(clMAC, i): #rentre: string et indice i de l'adresse mac dans le s
 def ClientMAC(mac): #rentre: adress mac
 	clientMAC = mac[:12]
 	if (clientMAC!="000000000000"): #si l'adresse n'est pas nul, on retourne adresse et padding
-		return "\tClient MAC address: {}\n\tClient hardware address padding: {}".format(LecteurMAC(clientMAC,0), mac[12:])
+		return "Client MAC address: {}\n".format(LecteurMAC(clientMAC,0)), "Client hardware address padding: {}\n".format(mac[12:])
 	else: #Sinon, on indique qu'elle n'est pas donnee comme wireshark
-		return "\tClient address not given"
+		return "Client address not given", ""
 
 def ServerHostName(octets): #rentre: nom en hex du server host name
 	#Retourne Server Host Name
 	asci = toAscii(octets) #on le transforme en ascii
 	if (asci == ""): #On indique si'il n'est pas donne
-		return "\tServer host name not given"
+		return "Server host name not given"
 	else: #Sinon on le donne sous format hex + ascii
-		return "\tServer host name: 0x"+octets+" ("+asci+")" #il suffit de transformet ca en ascii si necessaire
+		return "Server host name: 0x"+octets+" ("+asci+")" #il suffit de transformet ca en ascii si necessaire
 
 def BootFileName(octets): #rentre: nom en hex du Boot file name
 	#Retourne boot file name
 	asci = toAscii(octets)
 	if (asci == ""): #On indique si'il n'est pas donne
-		return "\tBoot file name not given"
+		return "Boot file name not given"
 	else: #Sinon on le donne sous format hex + ascii
-		return "\tBoot file name: 0x"+octets+" ("+asci+")" #il suffit de transformet ca en ascii si necessaire
+		return "Boot file name: 0x"+octets+" ("+asci+")" #il suffit de transformet ca en ascii si necessaire
 
 def MagicCookie(cookie): #gestion du magic cookie
 	if (cookie=="63825363"): #si cookie reconnue on la revoir
@@ -564,6 +578,20 @@ def ListOpDHCPEnText(L): #Entre: une liste contenant options de DHCP
 		L2 = L2[:-1] #ignorer dernier element vide
 		for el in L2:
 			res2=res2+"\t\t"+el+"\n"
+	return res2
+
+def ListOpDHCPEnTextInterf(L): #Entre: une liste contenant options de DHCP
+	#Retourne les options de DHCP en format texte indente correctement
+	#Fonction intermediaire pour le mode texte en optionDHCP
+	l = len(L)
+	res2 = ""
+	for i in range(l):
+		op = L[i]
+		res2=res2+op[0]+"\n"
+		L2 = op[1].split("\n")
+		L2 = L2[:-1] #ignorer dernier element vide
+		for el in L2:
+			res2=res2+"\t"+el+"\n"
 	return res2
 
 def DHCPoption3(options, j): #entre: section option totale et indice j du debut l'option en question
@@ -824,7 +852,7 @@ def messageTypeDHCP(nb): #Entre: nombre associe au type du dhcp
 	else:
 		return "Unknown code 0x{}".format(nb, nbDec)
 
-def optionDHCP(options, mod): #prend la section total option de dhcp, et mod (mod=0, retourne option sous format liste et mod=1 retourne options sous format texte)
+def optionDHCP(options, mod): #prend la section total option de dhcp, et mod (mod=0, retourne option sous format liste et mod=1 retourne options sous format texte, mod=2 retourne options sous format texte interface)
 	#Retourne les options de dhcp en mode liste ou texte selon mod
 	#Init info de base
 	cpt = 0
@@ -906,6 +934,8 @@ def optionDHCP(options, mod): #prend la section total option de dhcp, et mod (mo
 
 	if (mod==0):
 		return res
+	if (mod==2):
+		return ListOpDHCPEnTextInterf(res)
 	return ListOpDHCPEnText(res)
 
 

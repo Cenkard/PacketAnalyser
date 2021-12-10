@@ -173,7 +173,7 @@ Dynamic Host Configuration Protocol:
 	Hops: 0x00 (0)
 	Transaction ID: 0x00003d1d
 	Seconds elapsed: 0x0000 (0)
-	Bootp flags: 0000 (unicast)
+	Bootp flags: 0x0000 (unicast)
 	Client IP address: 0x00000000 (0.0.0.0)
 	Your (client) IP address: 0x00000000 (0.0.0.0)
 	Next Server IP address: 0x00000000 (0.0.0.0)
@@ -303,7 +303,7 @@ Dynamic Host Configuration Protocol:
 	Hops: 0x00 (0)
 	Transaction ID: 0x00003d1d
 	Seconds elapsed: 0x0000 (0)
-	Bootp flags: 0000 (unicast)
+	Bootp flags: 0x0000 (unicast)
 	Client IP address: 0x00000000 (0.0.0.0)
 	Your (client) IP address: 0x00000000 (0.0.0.0)
 	Next Server IP address: 0x00000000 (0.0.0.0)
@@ -371,7 +371,7 @@ Dynamic Host Configuration Protocol:
 	Hops: 0x00 (0)
 	Transaction ID: 0x00003d1d
 	Seconds elapsed: 0x0000 (0)
-	Bootp flags: 0000 (unicast)
+	Bootp flags: 0x0000 (unicast)
 	Client IP address: 0x00000000 (0.0.0.0)
 	Your (client) IP address: 0xc0a8000a (192.168.0.10)
 	Next Server IP address: 0xc0a80001 (192.168.0.1)
@@ -441,7 +441,7 @@ Dynamic Host Configuration Protocol:
 	Hops: 0x00 (0)
 	Transaction ID: 0x00003d1e
 	Seconds elapsed: 0x0000 (0)
-	Bootp flags: 0000 (unicast)
+	Bootp flags: 0x0000 (unicast)
 	Client IP address: 0x00000000 (0.0.0.0)
 	Your (client) IP address: 0x00000000 (0.0.0.0)
 	Next Server IP address: 0x00000000 (0.0.0.0)
@@ -512,7 +512,7 @@ Dynamic Host Configuration Protocol:
 	Hops: 0x00 (0)
 	Transaction ID: 0x00003d1e
 	Seconds elapsed: 0x0000 (0)
-	Bootp flags: 0000 (unicast)
+	Bootp flags: 0x0000 (unicast)
 	Client IP address: 0x00000000 (0.0.0.0)
 	Your (client) IP address: 0xc0a8000a (192.168.0.10)
 	Next Server IP address: 0x00000000 (0.0.0.0)
@@ -582,7 +582,7 @@ Dynamic Host Configuration Protocol:
 	Hops: 0xc9 (201)
 	Transaction ID: 0x1c560000
 	Seconds elapsed: 0x1010 (4112)
-	Bootp flags: 12c8 unknown
+	Bootp flags: 0x12c8 (unknown)
 	Client IP address: 0x1c560000 (28.86.0.0)
 	Your (client) IP address: 0x00000000 (0.0.0.0)
 	Next Server IP address: 0x00000000 (0.0.0.0)

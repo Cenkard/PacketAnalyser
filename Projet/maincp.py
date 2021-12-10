@@ -7,8 +7,6 @@ from tkinter import ttk
 from tkinter import filedialog
 from fileTools import *
 
-TK_SILENCE_DEPRECATION=1
-
 class App:
     def __init__(self):     #initialisation de la fenetre graphique
         self.win = Tk()
@@ -201,11 +199,13 @@ class App:
                     self.analyse_tree.insert('item5','end','serverIP',text="Next Server IP address: 0x"+ipAddrH+" ("+ipAddr+")")
                     ipAddrH, ipAddr = LecteurIpAdresse(dataDHCP.gatewayIP, 0)
                     self.analyse_tree.insert('item5','end','gatewayIP',text="Relay agent IP address: 0x"+ipAddrH+" ("+ipAddr+")")
-                    self.analyse_tree.insert('item5','end','clientMAC',text=ClientMAC(dataDHCP.clientMAC))
+                    el1, el2 = ClientMAC(dataDHCP.clientMAC) #retourne MAC selon si ca existe ou pas
+                    self.analyse_tree.insert('item5','end','clientMAC',text=el1)
+                    self.analyse_tree.insert('item5','end','clientMACPad',text=el2)
                     self.analyse_tree.insert('item5','end','serverName',text=ServerHostName(dataDHCP.serverName))
                     self.analyse_tree.insert('item5','end','bootFileName',text=BootFileName(dataDHCP.bootFileName))
                     self.analyse_tree.insert('item5','end','magicCookie',text="Magic Cookie: "+MagicCookie(dataDHCP.magicCookie))
-                    self.analyse_tree.insert('item5','end','options',text=optionDHCP(dataDHCP.options, 1))
+                    self.analyse_tree.insert('item5','end','options',text=optionDHCP(dataDHCP.options, 2))
                         
                 else:
                     self.analyse_tree.insert('','0','item5',text="Data not identified")
@@ -238,6 +238,8 @@ class App:
             self.analyse_tree.insert('item3','end','headchecksum',text="Header checksum : (0x"+dataIP.headerChecksum+") [unverified]")       
             self.analyse_tree.insert('item3','end','sourceIP',text="Source : "+dataIP.sourceIP)
             self.analyse_tree.insert('item3','end','destinationIP',text="Destination : "+dataIP.destinationIP)
+            if (dataIP.options!=None):
+                self.analyse_tree.insert('item3','end','optionsIP',text=ListOpEnTextInterf(dataIP.options))
         
         else:
             self.analyse_tree.insert('item3','end','dataUnknown',text="Data type not identified")

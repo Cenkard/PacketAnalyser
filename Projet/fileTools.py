@@ -56,7 +56,7 @@ def enregistrerTrameDetail(Fichier): #entre: un fichier contenant des trames
 			res=res+"\tDestination IP : "+str(dataEth.destinationIP)+"\n"
 			res=res+"\tSource IP : "+str(dataEth.sourceIP)+"\n"
 			if (dataEth.options!=None):
-				res=res+dataEth.options #------------------------------
+				res=res+ListOpEnText(dataEth.options) #------------------------------
 
 			if(dataEth.data.type == "ICMP"):
 				res=res+("Internet Control Message Protocol :\n")	
@@ -145,9 +145,13 @@ def enregistrerTrameDetail(Fichier): #entre: un fichier contenant des trames
 					res=res+"\tNext Server IP address: 0x"+ipAddrH+" ("+ipAddr+")"+"\n"
 					ipAddrH, ipAddr = LecteurIpAdresse(dataIP.data.gatewayIP, 0)
 					res=res+"\tRelay agent IP address: 0x"+ipAddrH+" ("+ipAddr+")"+"\n"
-					res=res+ClientMAC(dataIP.data.clientMAC)+"\n" #retourne MAC selon si ca existe ou pas
-					res=res+ServerHostName(dataIP.data.serverName)+"\n"#retourne le nom selon s'il existe ou pas
-					res=res+BootFileName(dataIP.data.bootFileName)+"\n" #retourne le nom du bootfile selon s'il est donne ou pas
+					el1, el2 = ClientMAC(dataIP.data.clientMAC) #retourne MAC selon si ca existe ou pas
+					if (el2!=""):
+						res = res+"\t"+el1+"\t"+el2
+					else:
+						res = res+"\t"+el1
+					res=res+"\t"+ServerHostName(dataIP.data.serverName)+"\n"#retourne le nom selon s'il existe ou pas
+					res=res+"\t"+BootFileName(dataIP.data.bootFileName)+"\n" #retourne le nom du bootfile selon s'il est donne ou pas
 					res=res+"\tMagic Cookie: "+MagicCookie(dataIP.data.magicCookie)+"\n"
 					res=res+optionDHCP(dataIP.data.options, 1)+"\n"
 				else:

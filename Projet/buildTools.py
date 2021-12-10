@@ -359,7 +359,7 @@ def creerTrame(fichier,tab):	#cree l'entete ethernet en fonction du tableau de t
 			dataEth.TTL = trame[44:46]
 			dataEth.protocol = trame[46:48]
 			dataEth.headerChecksum = trame[48:52]
-			dataEth.options, decalageIP = optionIP(trame, 1)
+			dataEth.options, decalageIP = optionIP(trame, 0)
 
 			if(dataEth.protocol == "11"):					#attribution des donnees UDP
 				dataIP = UDP(trame[decalageIP+68:decalageIP+72],trame[decalageIP+72:decalageIP+76])
