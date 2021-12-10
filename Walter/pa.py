@@ -1,7 +1,23 @@
 import math as m
 import sys
 from outils import *
+
 #----------------------------------------------Convertisseurs
+
+def toAscii(data):
+	i=0
+	ascii_data=""
+	while(i+2<=len(data)):
+		if(data[i:i+2] in ["01","02","03","04","05","06","07","08","09","0A","0a","0B","0b","0C","0c","0D","0d","0E","0e","0F","0f"]):
+			if(i<2):
+				pass;
+			else:
+				ascii_data = ascii_data+"."
+		elif((ConvHexDec(data[i:i+2])>=65 and ConvHexDec(data[i:i+2])<=122) or (ConvHexDec(data[i:i+2])>=48 and ConvHexDec(data[i:i+2])<=57)):
+			ascii_data = ascii_data + bytearray.fromhex(data[i:i+2]).decode()
+		i=i+2
+	return ascii_data
+
 def ConvHexDec(nb):
 	nombre = SupprimerEspace(nb)
 
@@ -336,24 +352,24 @@ def LecteurIpAdresse(trame, i): #Fonction intermediaire pour lire IP (ne pas oub
 		nb = ConvHexDec(trame[i:i+2])
 		addrIP = addrIP + str(nb) + "."
 		i=i+2
-	return addrIP[:-1]	
+	return trame[i-8:i], addrIP[:-1]
 
 def RecordRoute(trame, j):
 	lrr = ConvHexDec(trame[j+2: j+4]) #longueur en octets
 	Pointer = ConvHexDec(trame[j+4:j+6])
 	L= [] #liste de textes a inserer L[0] = ligne de nom, L[1] = type, L[2] = longueur, L[3] = pointeur
-	L.append("IP Option - Record Route ({} bytes)\n".format(lrr))
-	contenu = "Type: 7\nLength: {}\nPointer: {}\n".format(lrr, Pointer)
+	L.append("IP Option {} ({})- Record Route ({} bytes)\n".format("0x"+trame[j: j+2],ConvHexDec(trame[j: j+2]),  lrr))
+	contenu = "Type: {} (7)\nLength: {} ({})\nPointer: {} ({})\n".format(trame[j:j+2], trame[j+2:j+4], lrr, trame[j+4:j+6], Pointer)
 	finOp = j+lrr*2-1 #indice du dernier chiffre hexadecimal de cette option
 	i = j+6
 	cpt= 0
 	Pointer = (Pointer-4)/4
 	while (i<=finOp):
-		addrIP = LecteurIpAdresse(trame, i)
+		addrIPH, addrIP = LecteurIpAdresse(trame, i)
 		if (addrIP == "0.0.0.0"):
-			contenu = contenu + "Empty Route: "+addrIP+"\n"
+			contenu = contenu + "Empty Route: "+"0x"+addrIPH+" ("+addrIP+")"+"\n"
 		else:
-			contenu = contenu + "Recorded Route: "+addrIP+"\n"
+			contenu = contenu + "Recorded Route: "+"0x"+addrIPH+" ("+addrIP+")"+"\n"
 		i = i+8
 
 		#gestion pointer
@@ -376,13 +392,13 @@ def TimeStamp(trame, j):
 	lts = ConvHexDec(trame[j+2: j+4]) #longueur en octets
 	finOp = j+lts*2-1 #indice du dernier chiffre hexadecimal de cette option
 	L= [] #liste de textes a inserer L[0] = ligne de nom, L[1] = type, L[2] = longueur, L[3] = pointeur
-	L.append("IP Option - Time Stamp ({} bytes)\n".format(lts))
+	L.append("IP Option 0x{} ({})- Time Stamp ({} bytes)\n".format(trame[j: j+2],ConvHexDec(trame[j: j+2]), lts))
 	Pointer = ConvHexDec(trame[j+4:j+6])
 	OverflowBin = ConvHexBin(trame[j+6])
 	OverflowDec = ConvHexDec(trame[j+6])
 	Flag = ConvHexBin(trame[j+7])
 
-	contenu = "Type: 68\nLength: {}\nPointer: {}\n{} .... = Overflow: {}\n.... {} = Flag: {}\n".format(lts, Pointer, OverflowBin, OverflowDec, Flag, FlagTextTimeStamp(Flag))
+	contenu = "Type: 0x{} (68)\nLength: 0x{} ({})\nPointer: 0x{} ({})\n{} .... = Overflow: {}\n.... {} = Flag: {}\n".format(trame[j: j+2], trame[j+2:j+4], lts,trame[j+4:j+6], Pointer, OverflowBin, OverflowDec, Flag, FlagTextTimeStamp(Flag))
 
 	i = j+8
 	cpt = 0
@@ -390,20 +406,20 @@ def TimeStamp(trame, j):
 	if (Flag=="0000"):
 		while (i<=finOp):
 			nb = str(ConvHexDec(trame[i:i+8]))
-			contenu = contenu +"Time Stamp: "+ nb+"\n"
-			i = i +8
+			contenu = contenu +"Time Stamp: 0x"+trame[i:i+8]+" ("+nb+")"+"\n"
+			i = i+8
 
 	elif (Flag == "0001" or Flag=="0011"):
 		while (i<=finOp):
-			addrIP = LecteurIpAdresse(trame, i)
-			i = i + 8
+			addrIPH, addrIP = LecteurIpAdresse(trame, i)
+			i = i+8
 			nb = str(ConvHexDec(trame[i:i+8]))
-			i=i+8
+			i= i+8
 
 			if (addrIP=="0.0.0.0"):
-				contenu=contenu+"Address: -\nTime Stamp: {}\n".format(nb)
+				contenu=contenu+"Address: - 0x{}\nTime Stamp: 0x{} ({})\n".format(addrIPH, trame[i-8:i], nb)
 			else:
-				contenu=contenu+"Address: {}\nTime Stamp: {}\n".format(addrIP, nb)
+				contenu=contenu+"Address: 0x{} ({})\nTime Stamp: 0x{} ({})\n".format(addrIPH, addrIP, trame[i-8:i], nb)
 
 	L.append(contenu)
 	return i, L
@@ -412,18 +428,18 @@ def  LooseSourceRoute(trame, j):
 	lsr = ConvHexDec(trame[j+2: j+4]) #longueur en octets
 	Pointer = ConvHexDec(trame[j+4:j+6])
 	L= [] #liste de textes a inserer L[0] = ligne de nom, L[1] = type, L[2] = longueur, L[3] = pointeur
-	L.append("IP Option - Loose Source Route ({} bytes)\n".format(lsr))
-	contenu = "Type: 131\nLength: {}\nPointer: {}\n".format(lsr, Pointer)
+	L.append("IP Option 0x{} ({}) - Loose Source Route ({} bytes)\n".format(trame[j:j+2],ConvHexDec(trame[j: j+2]), lsr))
+	contenu = "Type: 0x{} (131)\nLength: 0x{} ({})\nPointer: 0x{} ({})\n".format(trame[j:j+2],trame[j+2:j+4], lsr,trame[j+4:j+6], Pointer)
 	finOp = j+lsr*2-1 #indice du dernier chiffre hexadecimal de cette option
 	i = j+6
 	cpt= 0
 	Pointer = (Pointer-4)/4
 	while (i<=finOp):
-		addrIP = LecteurIpAdresse(trame, i)
+		addrIPH, addrIP = LecteurIpAdresse(trame, i)
 		if (i!=finOp-7):
-			contenu = contenu + "Source Route: "+addrIP+"\n"
+			contenu = contenu + "Source Route: 0x"+addrIPH+" ("+addrIP+")"+"\n"
 		else:
-			contenu = contenu + "Destination: "+addrIP+"\n"
+			contenu = contenu + "Destination: 0x"+addrIPH+" ("+addrIP+")"+"\n"
 		i = i+8
 
 		#gestion pointer
@@ -437,18 +453,18 @@ def StrictSourceRoute(trame, j):
 	lss = ConvHexDec(trame[j+2: j+4]) #longueur en octets
 	Pointer = ConvHexDec(trame[j+4:j+6])
 	L= [] #liste de textes a inserer L[0] = ligne de nom, L[1] = type, L[2] = longueur, L[3] = pointeur
-	L.append("IP Option - Strict Source Route ({} bytes)\n".format(lss))
-	contenu = "Type: 137\nLength: {}\nPointer: {}\n".format(lss, Pointer)
+	L.append("IP Option 0x{} ({})- Strict Source Route ({} bytes)\n".format(trame[j:j+2],ConvHexDec(trame[j: j+2]),lss))
+	contenu = "Type: 0x{} (137)\nLength: 0x{} ({})\nPointer: 0x{} ({})\n".format(trame[j:j+2], trame[j+2:j+4], lss, trame[j+4:j+6], Pointer)
 	finOp = j+lss*2-1 #indice du dernier chiffre hexadecimal de cette option
 	i = j+6
 	cpt= 0
 	Pointer = (Pointer-4)/4
 	while (i<=finOp):
-		addrIP = LecteurIpAdresse(trame, i)
+		addrIPH, addrIP = LecteurIpAdresse(trame, i)
 		if (i!=finOp-7):
-			contenu = contenu + "Source Route: "+addrIP+"\n"
+			contenu = contenu + "Source Route: 0x"+addrIPH+" ("+addrIP+")"+"\n"
 		else:
-			contenu = contenu + "Destination: "+addrIP+"\n"
+			contenu = contenu + "Destination: 0x"+addrIPH+" ("+addrIP+")"+"\n"
 		i = i+8
 
 		#gestion pointer
@@ -473,9 +489,9 @@ def optionIP(trameTot,mod): #prend en entree une trame retourne ses options deco
 			typ = ConvHexDec(trame[i:i+2])
 			op = ""
 			if (typ==0):
-				i, op= finOps+1, ["IP Option - End of Option List (EOL)\n", "Type: 0\n"]
+				i, op= finOps+1, ["IP Option 0x{} ({})- End of Option List (EOL)\n".format(trame[i:i+2], ConvHexDec(trame[i: i+2])), "Type: 0x{} (0)\n".format(trame[i:i+2])]
 			elif (typ==1):
-				i, op = i+2, ["IP Option - No-Operation (NOP)\n", "Type: 1\n"]
+				i, op = i+2, ["IP Option 0x{} ({})- No-Operation (NOP)\n".format(trame[i:i+2], ConvHexDec(trame[i: i+2])), "Type: 0x{} (1)\n".format(trame[i:i+2])]
 			elif (typ==7):
 				i, op = RecordRoute(trame, i)
 			elif (typ==68):
@@ -490,7 +506,7 @@ def optionIP(trameTot,mod): #prend en entree une trame retourne ses options deco
 
 
 			if (op!= ["Erreur, option non reconnue", "Unknown"] or cpt==1):#gestion de plusieurs octets d option inconnue
-				if (op!= "Erreur, option non reconnue"):
+				if (op!= ["Erreur, option non reconnue", "Unknown"]):
 					cpt = 0
 				res.append(op)
 
@@ -503,9 +519,9 @@ def optionIP(trameTot,mod): #prend en entree une trame retourne ses options deco
 def messageDHCP(nb):
 	nbDec = ConvHexDec(nb)
 	if (nbDec==1):
-		return "Message type: Boot Request ({})".format(nbDec)
+		return "Message type: Boot Request 0x{} ({})".format(nb, nbDec)
 	elif (nbDec==2):
-		return "Message type: Boot Reply ({})".format(nbDec)
+		return "Message type: Boot Reply 0x{} ({})".format(nb, nbDec)
 	return "Message type: unknown"
 	
 
@@ -513,9 +529,9 @@ def hardwareDHCP(code):
 	nbDec = ConvHexDec(code)
 	dico = {0: 'NET/ROM pseudo (reserved)', 1: 'Ethernet (10Mb)', 2: 'Experimental Ethernet (3Mb)', 3: 'Amateur Radio AX.25', 4: 'Proteon ProNET Token Ring', 5: 'Chaos', 6: 'IEEE 802 Networks', 7: 'ARCNET', 8: 'Hyperchannel', 9: 'Lanstar', 10: 'Autonet Short Address', 11: 'LocalTalk', 12: 'LocalNet (IBM PCNet or SYTEK LocalNET)', 13: 'Ultra link', 14: 'SMDS', 15: 'Frame Relay', 16: 'Asynchronous Transmission Mode (ATM)', 17: 'HDLC', 18: 'Fibre Channel', 19: 'Asynchronous Transmission Mode (ATM)', 20: 'Serial Line', 21: 'Asynchronous Transmission Mode (ATM)', 22: 'MIL-STD-188-220', 23: 'Metricom', 24: 'IEEE 1394.1995', 25: 'MAPOS', 26: 'Twinaxial', 27: 'EUI-64', 28: 'HIPARP', 29: 'IP and ARP over ISO 7816-3', 30: 'ARPSec', 31: 'IPsec tunnel', 32: 'InfiniBand (TM)', 33: 'TIA-102 Project 25 Common Air Interface (CAI)', 34: 'Wiegand Interface', 35: 'Pure IP', 36: 'HW_EXP1', 37: 'HFI', 38: 'Unassigned', 256: 'HW_EXP2', 257: 'AEthernet', 258: 'Unassigned', 42: 'Reserved'}
 	if ((nbDec>37 and nbDec<256) or (nbDec>257 and nbDec<65535)):
-		return dico[38]+" (0x{})".format(code)
+		return "0x{} ".format(code)+" ["+dico[38]+"]"
 	elif (nbDec in dico):
-		return dico[nbDec]+" (0x{})".format(code)
+		return "0x{} ".format(code)+" ["+dico[nbDec]+"]"
 	return "Unknown (0x{})".format(code)
 
 
@@ -542,28 +558,18 @@ def ClientMAC(mac):
 		return "\tClient address not given"
 
 def ServerHostName(octets): #trans?
-	if (octets[0:20]=="00000000000000000000"):
+	asci = toAscii(octets)
+	if (asci == ""):
 		return "\tServer host name not given"
 	else:
-		nouvOctets = octets[:2]
-		octets = octets[2:]
-		i=0
-		while(i!=126 and octets[i]!=0):
-			nouvOctets= nouvOctets+el
-			i=i+1
-		return "\tServer host name: "+nouvOctets #il suffit de transformet ca en ascii si necessaire
+		return "\tServer host name: 0x"+octets+" ("+asci+")" #il suffit de transformet ca en ascii si necessaire
 
 def BootFileName(octets):#trans?
-	if (octets[0:20]=="00000000000000000000"):
+	asci = toAscii(octets)
+	if (asci == ""):
 		return "\tBoot file name not given"
 	else:
-		nouvOctets = octets[:2]
-		octets = octets[2:]
-		i=0
-		while(i!=126 and octets[i]!=0):
-			nouvOctets= nouvOctets+el
-			i=i+1
-		return "\tBoot file name: "+nouvOctets #il suffit de transformet ca en ascii si necessaire
+		return "\tBoot file name: 0x"+octets+" ("+asci+")" #il suffit de transformet ca en ascii si necessaire
 
 def MagicCookie(cookie):
 	if (cookie=="63825363"):
@@ -588,16 +594,16 @@ def ListOpDHCPEnText(L):  #Fonction intermediaire pour le mode texte en optionIP
 
 def DHCPoption3(options, j):
 	i = j
-	op = ["Option: ({}) Router Option".format(3)]
+	op = ["Option {}: (0x{}) - Router Option".format(ConvHexDec(options[j:j+2]), options[j:j+2])]
 	contenu = ""
 	l = ConvHexDec(options[i+2:i+4])
 	FinOp = i+4+l*2-1
 	cpt = 1
 	i=i+4
-	contenu = contenu+"Length: {}\n".format(l)
+	contenu = contenu+"Length: 0x{} ({})\n".format(options[j+2:j+4], l)
 	while (i <= FinOp):
-		addrIP = LecteurIpAdresse(options, i)
-		contenu= contenu+"Router preference {}: ".format(cpt)+addrIP+"\n"
+		addrIPH, addrIP = LecteurIpAdresse(options, i)
+		contenu= contenu+"Router preference {}: 0x".format(cpt)+addrIPH+" ("+addrIP+")"+"\n"
 		cpt= cpt+1
 		i=i+8
 	op.append(contenu)
@@ -605,88 +611,103 @@ def DHCPoption3(options, j):
 
 def DHCPoption6(options, j):
 	i = j
-	op = ["Option: ({}) Domain Name Server Option".format(6)]
+	op = ["Option {}: (0x{}) Domain Name Server Option".format(ConvHexDec(options[j:j+2]), options[j:j+2])]
 	contenu = ""
 	l = ConvHexDec(options[i+2:i+4])
 	FinOp = i+4+l*2-1
 	cpt = 1
 	i=i+4
-	contenu = contenu+"Length: {}\n".format(l)
+	contenu = contenu+"Length: 0x{} ({})\n".format(options[j+2:j+4], l)
 	while (i <= FinOp):
-		addrIP = LecteurIpAdresse(options, i)
-		contenu= contenu+"DNS server preference {}: ".format(cpt)+addrIP+"\n"
+		addrIPH, addrIP = LecteurIpAdresse(options, i)
+		contenu= contenu+"DNS server preference {}: 0x".format(cpt)+addrIPH+" ("+addrIP+")"+"\n"
 		cpt= cpt+1
 		i=i+8
+	op.append(contenu)
+	cpt= cpt+1
+	i=i+8
 	op.append(contenu)
 	return i, op
 
 def DHCPoption4(options, j): 
 	i = j
-	op = ["Option: ({}) Time Server Option".format(4)]
+	op = ["Option {}: (0x{}) Time Server Option".format(ConvHexDec(options[j:j+2]), options[j:j+2])]
 	contenu = ""
 	l = ConvHexDec(options[i+2:i+4])
 	FinOp = i+4+l*2-1
 	cpt = 1
 	i=i+4
-	contenu = contenu+"Length: {}\n".format(l)
+	contenu = contenu+"Length: 0x{} ({})\n".format(options[j+2:j+4], l)
 	while (i <= FinOp):
-		addrIP = LecteurIpAdresse(options, i)
-		contenu= contenu+"Time Server Option preference {}: ".format(cpt)+addrIP+"\n"
+		addrIPH, addrIP = LecteurIpAdresse(options, i)
+		contenu= contenu+"Time Server Option preference {}: 0x".format(cpt)+addrIPH+" ("+addrIP+")"+"\n"
 		cpt= cpt+1
 		i=i+8
 	op.append(contenu)
 	return i, op
 
-def DHCPoption12(options, j): #trans?
+def DHCPoption12(options, j): 
 	i = j
-	op = ["Option: ({}) Host Name Option".format(12)]
+	op = ["Option {}: (0x{}) Host Name Option".format(ConvHexDec(options[j:j+2]), options[j:j+2])]
 	contenu = ""
 	l = ConvHexDec(options[i+2:i+4])
 	FinOp = i+4+l*2-1
 	i = i+4
-	contenu = contenu+"Length: {}\n".format(l)
+	contenu = contenu+"Length: 0x{} ({})\n".format(options[j+2:j+4], l)
 
 	nom= "Host Name: "
 	octets = ""
-	while (i<=FinOp and options[i:i+2]!="00"):
-		octets = octets+options[i:i+2]
-		i=i+2
-	nom = nom + octets + "\n" #transforme octets en ascii si necessaire
+	while (i<=FinOp):
+		octets = octets+options[i]
+		i=i+1
+	octetsTemp = octets
+	octets = toAscii(octets)
+	if (octets==""):
+		octets = "0x000....0 (Not given)"
+	else:
+		octets = "0x"+octetsTemp+" ("+octets+")"
+	nom = nom + octets + "\n"
 	contenu = contenu+nom
 	op.append(contenu)
 	return FinOp+1, op
 
 def DHCPoption15(options, j): #trans?
 	i = j
-	op = ["Option: ({}) Domain Name".format(15)]
+	op = ["Option {}: (0x{}) Domain Name".format(ConvHexDec(options[j:j+2]), options[j:j+2])]
 	contenu = ""
 	l = ConvHexDec(options[i+2:i+4])
 	FinOp = i+4+l*2-1
 	i = i+4
-	contenu = contenu+"Length: {}\n".format(l)
+	contenu = contenu+"Length: 0x{} ({})\n".format(options[j+2:j+4], l)
 
 	nom= "Domain Name: "
 	octets = ""
-	while (i<=FinOp and options[i:i+2]!="00"):
-		octets = octets+options[i:i+2]
-		i=i+2
-	nom = nom + octets + "\n" #transforme octets en ascii si necessaire
+	while (i<=FinOp):
+		octets = octets+options[i]
+		i=i+1
+	octetsTemp = octets
+	octets = toAscii(octets)
+	if (octets==""):
+		octets = "0x000....0 (Not given)"
+	else:
+		octets = "0x"+octetsTemp+" ("+octets+")"
+	nom = nom + octets + "\n"
 	contenu = contenu+nom
 	op.append(contenu)
 	return FinOp+1, op
 
 def DHCPoption42(options, j):
 	i = j
-	op = ["Option: ({}) Network Time Protocol Servers Option".format(42)]
+	op = ["Option {}: (0x{}) Network Time Protocol Servers Option".format(ConvHexDec(options[j:j+2]), options[j:j+2])]
 	contenu = ""
 	l = ConvHexDec(options[i+2:i+4])
 	FinOp = i+4+l*2-1
 	cpt = 1
 	i=i+4
-	contenu = contenu+"Length: {}\n".format(l)
+	contenu = contenu+"Length: 0x{} ({})\n".format(options[j+2:j+4], l)
 	while (i <= FinOp):
-		addrIP = LecteurIpAdresse(options, i)
-		contenu= contenu+"Network Time Protocol Server preference {}: ".format(cpt)+addrIP+"\n"
+		addrIPH, addrIP = LecteurIpAdresse(options, i)
+		contenu= contenu+"Network Time Protocol Server preference {}: 0x".format(cpt)+addrIPH+" ("+addrIP+")"+"\n"
 		cpt= cpt+1
 		i=i+8
 	op.append(contenu)
@@ -694,16 +715,16 @@ def DHCPoption42(options, j):
 
 def DHCPoption48(options, j):
 	i = j
-	op = ["Option: ({}) X Window System Font Server Option".format(48)]
+	op = ["Option {}: (0x{}) X Window System Font Server Option".format(ConvHexDec(options[j:j+2]), options[j:j+2])]
 	contenu = ""
 	l = ConvHexDec(options[i+2:i+4])
 	FinOp = i+4+l*2-1
 	cpt = 1
 	i=i+4
-	contenu = contenu+"Length: {}\n".format(l)
+	contenu = contenu+"Length: 0x{} ({})\n".format(options[j+2:j+4], l)
 	while (i <= FinOp):
-		addrIP = LecteurIpAdresse(options, i)
-		contenu= contenu+"X Window System Font Server Option preference {}: ".format(cpt)+addrIP+"\n"
+		addrIPH, addrIP = LecteurIpAdresse(options, i)
+		contenu= contenu+"X Window System Font Server Option preference {}: 0x".format(cpt)+addrIPH+" ("+addrIP+")"+"\n"
 		cpt= cpt+1
 		i=i+8
 	op.append(contenu)
@@ -711,18 +732,20 @@ def DHCPoption48(options, j):
 
 def DHCPoption61(options, j): #transformation ascii non necessaire
 	i = j
-	op = ["Option: ({}) Client-identifier".format(61)]
+	op = ["Option {}: (0x{}) Client-identifier".format(ConvHexDec(options[j:j+2]), options[j:j+2])]
 	contenu = ""
 	l = ConvHexDec(options[i+2:i+4])
 	FinOp = i+4+l*2-1
-	contenu = contenu+"Length: {}\nHardware type: {}\n".format(l, hardwareDHCP(options[i+4:i+6]))
+	contenu = contenu+"Length: 0x{} ({})\nHardware type: {}\n".format(options[j+2:j+4], l, hardwareDHCP(options[i+4:i+6]))
 	i = i+6
 
 	nom= "Client-identifier: "
 	octets = ""
-	while (i<=FinOp and options[i:i+2]!="00"):
+	while (i<=FinOp):
 		octets = octets+options[i:i+2]+":"
 		i=i+2
+	if (octets[0:12]=="000000000000"):
+		octets = "Not given"
 	nom = nom + octets[:-1] + "\n" #transforme octets en ascii si necessaire
 	contenu = contenu+nom
 	op.append(contenu)
@@ -731,19 +754,21 @@ def DHCPoption61(options, j): #transformation ascii non necessaire
 
 def DHCPoption60(options, j): #trans?
 	i = j
-	op = ["Option: ({}) Vendor class identifier".format(60)]
+	op = ["Option {}: (0x{}) Vendor class identifier".format(ConvHexDec(options[j:j+2]), options[j:j+2])]
 	contenu = ""
 	l = ConvHexDec(options[i+2:i+4])
 	FinOp = i+4+l*2-1
 	i = i+4
-	contenu = contenu+"Length: {}\n".format(l)
+	contenu = contenu+"Length: 0x{} ({})\n".format(options[j+2:j+4], l)
 
 	nom= "Vendor class identifier: "
 	octets = ""
-	while (i<=FinOp and options[i:i+2]!="00"):
-		octets = octets+options[i:i+2]
+	while (i<=FinOp):
+		octets = octets+options[i:i+2]+":"
 		i=i+2
-	nom = nom + octets + "\n" #transforme octets en ascii si necessaire
+	if (octets[0:12]=="000000000000"):
+		octets = "Not given"
+	nom = nom + octets[:-1] + "\n" #transforme octets en ascii si necessaire
 	contenu = contenu+nom
 	op.append(contenu)
 	return FinOp+1, op
@@ -768,16 +793,16 @@ def nomOpDHCP(nb):
 	 
 def DHCPoption55(options, j):
 	i = j
-	op = ["Option: ({}) Parameter Request List".format(55)]
+	op = ["Option {}: (0x{}) Parameter Request List".format(ConvHexDec(options[j:j+2]), options[j:j+2])]
 	contenu = ""
 	l = ConvHexDec(options[i+2:i+4])
 	FinOp = i+4+l*2-1
 	i = i+4
-	contenu = contenu+"Length: {}\n".format(l)
+	contenu = contenu+"Length: 0x{} ({})\n".format(options[j+2:j+4], l)
 	while (i<=FinOp):
 		octet = options[i:i+2]
 		nb = ConvHexDec(octet)
-		contenu = contenu+"Parameter Request List Item: ({}) {}\n".format(nb, nomOpDHCP(nb))
+		contenu = contenu+"Parameter Request List Item: 0x{} ({}/{})\n".format(octet, nb,nomOpDHCP(nb))
 		i=i+2
 	op.append(contenu)
 	return FinOp+1, op
@@ -785,23 +810,23 @@ def DHCPoption55(options, j):
 def messageTypeDHCP(nb):
 	nbDec = ConvHexDec(nb)
 	if (nbDec==1):
-		return "DHCP: Discover ({})".format(nbDec)
+		return "DHCP: 0x{} ({}/Discover)".format(nb, nbDec)
 	elif (nbDec==2):
-		return "DHCP: Offer ({})".format(nbDec)
+		return "DHCP: 0x{} ({}/Offer)".format(nb, nbDec)
 	elif (nbDec==3):
-		return "DHCP: Request ({})".format(nbDec)
+		return "DHCP: 0x{} ({}/Request)".format(nb, nbDec)
 	elif (nbDec==4):
-		return "DHCP: Decline ({})".format(nbDec)
+		return "DHCP: 0x{} ({}/Decline)".format(nb, nbDec)
 	elif (nbDec==5):
-		return "DHCP: ACK ({})".format(nbDec)
+		return "DHCP: 0x{} ({}/ACK)".format(nb, nbDec)
 	elif (nbDec==6):
-		return "DHCP: NAK ({})".format(nbDec)
+		return "DHCP: 0x{} ({}/NAK)".format(nb, nbDec)
 	elif (nbDec==7):
-		return "DHCP: Release ({})".format(nbDec)
+		return "DHCP: 0x{} ({}/Release)".format(nb, nbDec)
 	elif (nbDec==8):
-		return "DHCP: Inform ({})".format(nbDec)
+		return "DHCP: 0x{} ({}/Inform)".format(nb, nbDec)
 	else:
-		return "Unknown code".format(nbDec)
+		return "Unknown code 0x{}".format(nb, nbDec)
 
 def optionDHCP(options, mod):
 	cpt = 0
@@ -819,8 +844,8 @@ def optionDHCP(options, mod):
 			op = ""
 			if (typ==1):
 				l = ConvHexDec(options[i+2:i+4])
-				SubMask = LecteurIpAdresse(options, i+4)
-				i, op = i+12, ["Option: ({}) Subnet Mask ({})".format(typ, SubMask), "Length: {}\nSubnet Mask: {}\n".format(l, SubMask)]
+				SubMaskH, SubMask = LecteurIpAdresse(options, i+4)
+				i, op = i+12, ["Option {}: (0x{}) Subnet Mask ({})".format(ConvHexDec(options[i:i+2]), options[i:i+2], SubMask), "Length: 0x{} ({})\nSubnet Mask: 0x{} ({})\n".format(options[i+2:i+4], l, SubMaskH, SubMask)]
 			elif (typ==3):
 				i, op = DHCPoption3(options, i)
 			elif (typ==6):
@@ -828,11 +853,11 @@ def optionDHCP(options, mod):
 			elif (typ==51):
 				l = ConvHexDec(options[i+2:i+4])
 				LeaseTime = ConvHexDec(options[i+4:i+12])
-				i, op = i+12, ["Option: ({}) IP Address Lease Time".format(typ), "Length: {}\nIP Address Lease Time: ({}) seconds\n".format(l, LeaseTime)]
+				i, op = i+12, ["Option {}: (0x{}) IP Address Lease Time".format(ConvHexDec(options[i:i+2]), options[i:i+2]), "Length: 0x{} ({})\nIP Address Lease Time: 0x{} ({} seconds)\n".format(options[i+2:i+4], l, options[i+4:i+12], LeaseTime)]
 			elif (typ==2):
 				l = ConvHexDec(options[i+2:i+4])
 				TimeOffset = ConvHexBin(options[i+4:i+12])
-				i, op = i+12, ["Option: ({}) Time Offset".format(typ), "Length: {}\nTime Offset: ({}) seconds\n".format(l, TimeOffset)]
+				i, op = i+12, ["Option {}: (0x{}) Time Offset".format(ConvHexDec(options[i:i+2]), options[i:i+2]), "Length: 0x{} ({})\nTime Offset: 0x{} ({} seconds) \n".format(options[i+2:i+4], l, options[i+4:i+12], TimeOffset)]
 			elif (typ==4):
 				i, op = DHCPoption4(options, i)
 			elif (typ==12):
@@ -850,46 +875,38 @@ def optionDHCP(options, mod):
 			elif (typ==55):
 				i, op = DHCPoption55(options, i)
 			elif (typ==53):
-				i, op = i+6, ["Option: ({}) DHCP Message Type".format(typ), "Length: {}\n{}\n".format(1, messageTypeDHCP(options[i+4:i+6]))]
+				i, op = i+6, ["Option {}: (0x{}) DHCP Message Type".format(ConvHexDec(options[i:i+2]), options[i:i+2]), "Length: 0x{} ({})\n{}\n".format(options[i+2:i+4], 1, messageTypeDHCP(options[i+4:i+6]))]
 			elif (typ==50):
-				i, op = i+12, ["Option: ({}) Requested IP Address".format(typ), "Length: {}\nRequested IP Address: {}\n".format(1,LecteurIpAdresse(options[i+4:i+12], 0))]
+				ipAddrH, ipAddr = LecteurIpAdresse(options[i+4:i+12], 0)
+				i, op = i+12, ["Option {}: (0x{}) Requested IP Address".format(ConvHexDec(options[i:i+2]), options[i:i+2]), "Length: 0x{} ({})\nRequested IP Address: 0x{} ({})\n".format(options[i+2:i+4], 1,ipAddrH, ipAddr)] 
 			elif (typ==255):
-				i, op = i+2, ["Option: ({}) End".format(typ), "Option End: {}\n".format(typ)]
+				i, op = i+2, ["Option {}: (0x{}) End".format(ConvHexDec(options[i:i+2]), options[i:i+2]), "Option End: 0x{} ({})\n".format(options[i:i+2], 255)]
 			elif (typ==59):
 				l = ConvHexDec(options[i+2:i+4])
 				RebindTime = ConvHexDec(options[i+4:i+12])
-				i, op = i+12, ["Option: ({}) Rebinding Time Value".format(typ), "Length: {}\nRebinding Time Value: ({}) seconds\n".format(l, RebindTime)]
+				i, op = i+12, ["Option {}: (0x{}) Rebinding Time Value".format(ConvHexDec(options[i:i+2]), options[i:i+2]), "Length: 0x{} ({})\nRebinding Time Value: 0x{} ({} seconds)\n".format(options[i+2:i+4], l, options[i+4:i+12], RebindTime)]
 			elif (typ==54):
-				i, op = i+12, ["Option: ({}) DHCP Server Identifier".format(typ), "Length: {}\nDHCP Server Identifier: {}\n".format(4, LecteurIpAdresse(options[i+4:i+12], 0))]
+				ipAddrH, ipAddr = LecteurIpAdresse(options[i+4:i+12], 0)
+				i, op = i+12, ["Option {}: (0x{}) DHCP Server Identifier".format(ConvHexDec(options[i:i+2]), options[i:i+2]), "Length: 0x{} ({})\nDHCP Server Identifier: 0x{} ({})\n".format(options[i+2:i+4], 4, ipAddrH, ipAddr)]
 			elif (typ==0):
 				i, op = DHCPoptionPad(options, i)
 			elif (typ==58):
 				l = ConvHexDec(options[i+2:i+4])
 				RenewalTime = ConvHexDec(options[i+4:i+12])
-				i, op = i+12,["Option: ({}) Renewal Time Value".format(typ), "Length: {}\nRenewal Time Value: ({}) seconds\n".format(l, RenewalTime)]
+				i, op = i+12,["Option {}: (0x{}) Renewal Time Value".format(ConvHexDec(options[i:i+2]), options[i:i+2]), "Length: 0x{} ({})\nRenewal Time Value: 0x{} ({} seconds)\n".format(options[i+2:i+4], l, options[i+4:i+12], RenewalTime)]
 			else:
-				i, op = i+2, ["Erreur, option non reconnue {}".format(typ), "Unknown"]
+				i, op = i+2, ["Erreur, option non reconnue {}".format(options[i:i+2])]
 				cpt = cpt+1
 
 
-			if (op!= ["Erreur, option non reconnue {}".format(typ), "Unknown"] or cpt==1):#gestion de plusieurs octets d option inconnue
-				if (op!= "Erreur, option non reconnue"):
+			if (op[0][0:27]!= "Erreur, option non reconnue" or cpt==1):#gestion de plusieurs octets d option inconnue
+				if (op[0][0:27]!= "Erreur, option non reconnue"):
 					cpt = 0
 				res.append(op)
-	#print(res)
 
 	if (mod==0):
 		return res
 	return ListOpDHCPEnText(res)
-
-
-#Fichier, tab = TextCleanerTrame("trame.txt")
-#listTrame, tab= creerTabTrame(Fichier,tab)
-#print(listTrame)
-#fichier, tab = TextCleanerTrame("test 2.txt")
-#fichier = creerTabTrame(fichier, tab)
-#AfficherDim2(fichier)
-
 
 
 

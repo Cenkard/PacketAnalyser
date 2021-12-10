@@ -1,6 +1,10 @@
 from pa import *
 
-class Trame:
+"""
+Fichier repertoriant les differentes classes utiles pour la conception des trames
+"""
+
+class Trame:	#Classe Trame contenant l'entete Eth le paquet dataIP
 	def __init__(self,id,destination=None,source=None,typ=None,data=None):
 		self.id = id
 		self.type="Ethernet"
@@ -17,7 +21,7 @@ class Trame:
 		self.typ = typ
 		self.data = data
 
-class DataIP:
+class DataIP: 	#Classe DataIP contenant l'entete IP et le paquet udp / icmp
 	def __init__(self,version=None,IHL=None,TOS=None,totalLength=None,identification=None,flags=None,fragOffset=None,TTL=None,
 				protocol=None,headerChecksum=None,destinationIP=None,sourceIP=None,options=None,data=None):
 		self.type="Datagrame IP"
@@ -47,17 +51,17 @@ class DataIP:
 
 		self.options = options
 
-		self.data = data
+		self.data = data	
 
-class ICMP:
+class ICMP:	#Classe ICMP contenant l'entete ICMP et le paquet icmp 
 	def __init__(self,checksum=None,identifier=None,sequenceNumber=None,optionalData=None):
 		self.type="ICMP"
 		self.checksum
 		self.identifier
 		self.sequenceNumber
-		self.optionalData
+		self.optionalData	
 
-class UDP:
+class UDP:		#Classe UDP contenant l'entete UDP et le paquet dns / dhcp 
 	def __init__(self,sourcePortNum=None,destPortNum=None,length=None,checksum=None,data=None):
 		self.type = "UDP"
 		self.sourcePortNum = sourcePortNum
@@ -66,7 +70,7 @@ class UDP:
 		self.checksum = checksum
 		self.data = data
 
-class DNS:
+class DNS:		#Classe DNS contenant l'entete DNS et les diffrents paquet DNS
 	def __init__(self,transID=None,flags=None,questions=None,answerRRs=None,authRRs=None,addRRs=None,query=None,answers=None,authority=None,addition=None):
 		self.type="DNS"
 		self.transID = transID
@@ -82,10 +86,11 @@ class DNS:
 		self.authority = authority
 		self.addition = addition
 
-class dnsQueries:
-	def __init__(self,name=None,typeQ=None,classe=None):
+class dnsQueries:		#Classe dnsQueries contenant le paquet queries
+	def __init__(self,name=None,ascii_name="",typeQ=None,classe=None):
 		self.dnsType = "(query)"
 		self.name = name
+		self.ascii_name=ascii_name
 		self.name_length = len(name)
 		self.typeQ = typeQ
 		if(typeQ=="CNAME"):
@@ -94,22 +99,24 @@ class dnsQueries:
 
 		self.classe = classe
 
-class dnsAnswers:
-	def __init__(self,name,typeA,classe,ttl=None,rdata_length=None,data=None):
+class dnsAnswers:		#Classe dnsAnswers propre au paquet Answer/Authority/Addition qui ont la meme structure
+	def __init__(self,name,typeA,classe,ttl=None,rdata_length=None,data=None,ascii_name="None",ascii_data="None"):
 		self.dnsType = "(response)"
 		self.name = name
+		self.ascii_name = ascii_name
 		self.nameLength = len(name)
 		self.typeA = typeA
 		self.classe = classe
 		self.ttl = ttl
 		self.rdata_length = rdata_length
+		self.ascii_data=ascii_data
 		if(rdata_length!=0):
-			if("(A)" in typeA or "(AAAA)" in typeA):
+			if("(A)" in typeA):
 				self.data = str(ConvHexDec(data[:2]))+"."+str(ConvHexDec(data[2:4]))+"."+str(ConvHexDec(data[4:6]))+"."+str(ConvHexDec(data[6:8]))
 			else:
 				self.data = data
 		
-class DHCP: #------------------------------------------------------------------------ modifie
+class DHCP:				#Classe DHCP contenant le paquet dhcp et ses options
 	def __init__(self,bootRq,hardType,hardAddLength,hops,transID,secColl,bootpFlags,clientIP,yourIP,serverIP,gatewayIP, clientMAC, serverName,bootFileName,magicCookie,options):
 		self.type="DHCP"
 		self.bootRq = bootRq
@@ -128,9 +135,8 @@ class DHCP: #-------------------------------------------------------------------
 		self.bootFileName = bootFileName
 		self.magicCookie = magicCookie
 		self.options = options
-		
 
-class noneTypeData:
+class noneTypeData:		#Classe noneTypeData qui sert si un des paquets n'est pas identifie
 		def __init__(self,data,type):
 			self.type = type
 			self.data = data
