@@ -170,7 +170,6 @@ def enregistrerTrameDetail(Fichier):
 		else:
 			res=res+"Ethernet data not identified...\n"
 			res=res+"Ethernet data type known : IPv4\n"
-		print(res)
 
 
 		L.append((14+ConvHexDec(dataEth.totalLength), str(trame.id), res))
